@@ -1911,7 +1911,7 @@ Host myserver2
 也可以使用如下命令一键添加公钥：
 
 ```shell
-ssh-copy-id myserver
+ssh-copy-id myserver(配置的服务器别名)
 ```
 
 
@@ -2656,8 +2656,8 @@ Linux命令非常多，本节讲解几个常用命令。其他命令依赖于大
 5. `cut`：分割一行内容
 
    - 从 `stdin` 中读入多行数据
-   - `echo $PATH | cut -d ':' -f 3,5`：输出 `PATH` 用：分割后第3、5列数据
-   - `echo $PATH | cut -d ':' -f 3-5`：输出 `PATH` 用:分割后第3-5列数据
+   - `echo $PATH | cut -d ':' -f 3,5`：输出 `PATH` 用 `:` 分割后第3、5列数据
+   - `echo $PATH | cut -d ':' -f 3-5`：输出 `PATH` 用 `:` 分割后第3-5列数据
    - `echo $PATH | cut -c 3,5`：输出 `PATH` 的第3、5个字符
    - `echo $PATH | cut -c 3-5`：输出 `PATH` 的第3-5个字符
 
@@ -2815,7 +2815,7 @@ sudo apt-get install tmux
 为了避免每次使用 `docker` 命令都需要加上 `sudo` 权限，可以将当前用户加入安装中自动创建的 `docker` 用户组(可以参考[官方文档](https://docs.docker.com/engine/install/linux-postinstall/))：
 
 ```shell
-sudo usermod -aG docker $USER
+sudo usermod -aG docker $USER(你的用户名)
 ```
 
 安装sudo：
@@ -2859,6 +2859,8 @@ sudo usermod -aG docker $USER
 5. `docker [container] restart CONTAINER`：重启容器
 
 6. `docker [contaienr] run -itd ubuntu:20.04`：创建并启动一个容器
+
+   `-p aa:bb` ：将 docker 的 bb 端口映射到机器的 aa 端口
 
 7. `docker [container] attach CONTAINER`：进入容器
    
@@ -2916,4 +2918,3 @@ ssh root@xxx.xxx.xxx.xxx -p 20000  # 将xxx.xxx.xxx.xxx替换成自己租的服�
 然后，可以仿照上节课内容，创建工作账户 `acs` 。
 
 最后，可以参考[ssh登录](#5.1 ssh登录)登录配置 `docker` 容器的别名和免密登录
-
