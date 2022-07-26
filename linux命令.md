@@ -2144,7 +2144,7 @@ scp ~/.vimrc ~/.tmux.conf myserver:
 
 - `git remote add origin git@git.acwing.com:xxx/XXX.git`：将本地仓库关联到远程仓库 
 
-  **注意：链接从新仓库下获取**
+  **注意：origin的意思是“远程仓库”，链接从仓库下获取**
 
 - `git remote rm origin` :取消本地仓库与远程仓库的关联
 
@@ -2237,6 +2237,41 @@ scp ~/.vimrc ~/.tmux.conf myserver:
 - `git stash drop`：删除栈顶存储的修改
 - `git stash pop`：将栈顶存储的修改恢复到当前分支，同时删除栈顶元素
 - `git stash list`：查看栈中所有元素
+
+
+
+### 常见错误
+
+```
+[new branch]      master     -> origin/master
+There is no tracking information for the current branch.
+Please specify which branch you want to merge with.
+See git-pull(1) for details.
+
+	git pull <remote> <branch>
+
+If you wish to set tracking information for this branch you can do so with:
+
+ 	git branch --set-upstream-to=origin/<branch> master
+```
+
+这种情况一般是本地新建仓库关联远程仓库后想拉取内容，使用 `git pull` 命令时候出现
+
+问题为本地仓库没有对应远程仓库的分支
+
+解决方案：
+
+1. 直接添加指定的远程分支
+
+    `git pull origin master` ：操作master
+
+2. 先指定本地分支对应远程的分支，然后再去pull
+
+    `git branch --set-upstream-to=origin/master master` ：制定本地master到远程master
+
+    `git pull`
+
+    使用之前需要保证有分支，`git branch -a` ：查看， `git checkout` ：切换
 
 
 
