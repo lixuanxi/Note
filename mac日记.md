@@ -1,8 +1,32 @@
 # mac日记
 
-## 1. 环境软件
+## 1. 激活设置
+
+**三指拖移**
+
+**访达设置**
+
+**触发角**
+
+**程序坞**
+
+
+
+## 2. 环境软件
+
+**clash**
+
+**Homebrew**
+
+`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+如果安装不成功，从`clash`处复制代理在终端输入在执行此命令
+
+
 
 **iterm2 + oh my zsh**
+
+oh my zsh插件：
 
 `zsh-syntax-highlighting`
 
@@ -31,7 +55,7 @@ plugins=(其他的插件 zsh-autosuggestions)
 
 
 
-## 2. 快捷键
+## 3. 快捷键
 
 **文件移动：**
 
