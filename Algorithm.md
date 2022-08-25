@@ -34,6 +34,10 @@
 
 ## 1. 快速排序——基于分治
 
+给定你一个长度为 n 的整数数列。请你使用快速排序对这个数列按照从小到大进行排序。
+
+快排是一种不稳定的排序算法，排序算法稳定指的是原序两值相对顺序相同。
+
 - 确定分界点：q[l], q[(l+r)/2], q[r] 随机 一般选中点
 
 - ★调整区间：          ≤x                          ≥x 
@@ -50,14 +54,14 @@
 		3	1	2	3	5	此时q[i]>=x q[j]>=x 
 		i		j			i<j交换值 退出循环 
 递归左边	
-#2		3   1	2	3	5   	x=1	
+#2		2   1	3	3	5   	x=1	
 	i				j	
-		3   1	2	3	5   此时q[i]>=x q[j]>=x 
+		2   1	3	3	5   此时q[i]>=x q[j]>=x 
 		i	j				i<j交换值 退出循环 
 
-#3		1	3	2	3	5		x=3
+#3		1	2	3	3	5		x=3
 	i			j
-		1	3	2	3	5		x=3
+		1	2	3	3	5		x=3
 			ij				i=j不交换 退出循环		
 ```
 
@@ -73,7 +77,7 @@
 
 **时间复杂度**
 
-平均时间复杂度 O(nlogn)，最坏情况下 O(n2)，在数组已排好序的情况下出现，可以通过随机化或者取中点来避免最差情况。
+平均时间复杂度 $O(nlogn)$，最坏情况下 $O(n^2)$，在数组已排好序的情况下出现，可以通过随机化或者取中点来避免最差情况。
 
 ```c++
 //左闭右闭 quick_sort(q, 0, n-1) 双指针思想
@@ -131,14 +135,14 @@ void quick_sort(vector<int> &nums, int l, int r) {
     if (l + 1 >= r) return;
     int x = nums[l + r / 2], i = l , j = r-1;
     while (i < j){
-    while (i < j && nums[j] >= x) {
-        --j;
-    }
-    nums[i] = nums[j];
-    while (i < j && nums[i] <= x) {
-        ++i;
-    }
-    nums[j] = nums[i];
+    	while (i < j && nums[j] >= x) {
+        	--j;
+    	}
+    	nums[i] = nums[j];
+   		while (i < j && nums[i] <= x) {
+        	++i;
+    	}
+    	nums[j] = nums[i];
 	}    
     nums[i] = x;
     quick_sort(nums, l , i);
@@ -148,8 +152,6 @@ void quick_sort(vector<int> &nums, int l, int r) {
 
 
 
-排序算法稳定 指的是原序两值相对顺序相同
-
 
 
 ------
@@ -158,23 +160,29 @@ void quick_sort(vector<int> &nums, int l, int r) {
 
 ## 2. 归并排序——分治	
 
+给定你一个长度为 n 的整数数列。请你使用归并排序对这个数列按照从小到大进行排序。
+
+归并排序是稳定排序
+
 ​			    left	              right
 
 ​	|——————|——————|
 
-	1. 确定分界点：mid=(l + r) / 2
-	2. 递归排序left、right	[l, mid] [mid + 1, r]
-	3. ★归并——合二为一
-		1. 主体合并
-		  至少有一个小数组添加到 tmp 数组中
-		2. 收尾
-		  可能存在的剩下的一个小数组的尾部直接添加到 tmp 数组中
-		3. 复制回来
-		  tmp 数组覆盖原数组
+1. 确定分界点：mid=(l + r) / 2
+2. 递归排序  left、right	[l, mid] [mid + 1, r]
+3. ★归并——合二为一
+	1. 主体合并
+	    至少有一个小数组添加到 tmp 数组中
+	2. 收尾
+	    可能存在的剩下的一个小数组的尾部直接添加到 tmp 数组中
+	3. 复制回来
+	    tmp 数组覆盖原数组
 
 ![归并动画](https://gitee.com/lxxdao/image/raw/master/algorithm/1.2归并动画.gif)
 
 ```c++
+int q[N];
+int tmp[N];   	 	// 需要开额外数组！！！
 //左闭右闭
 void merge_sort(int q[], int l, int r)
 {
@@ -269,6 +277,56 @@ int bsearch_2(int l, int r) //寻找作左区间的右端点
 }
 ```
 
+#### 数的范围
+
+给定一个按照升序排列的长度为 n 的整数数组，以及 q 个查询。
+
+对于每个查询，返回一个元素 k 的起始位置和终止位置（位置从 0 开始计数）。
+
+如果数组中不存在该元素，则返回 `-1 -1`。
+
+```c++
+#include <iostream>
+using namespace std;
+
+const int N=100010;
+int n, m;
+int q[N];
+
+int main() {
+    scanf("%d%d", &n, &m);
+    for (int i = 0; i < n; i ++) scanf("%d", &q[i]);  
+    while (m --){
+        int x;
+        scanf("%d", &x);
+        
+        int l = 0, r = n - 1;
+        while (l < r) {					// 右区间的左端点
+            int mid = l + r >> 1;		// 如果中点大于等于(等于的话可能左边还有相等点)寻找值，说明寻找值在左边
+            if (q[mid] >= x) r = mid;
+            else l = mid +1 ;
+        }
+        
+        if (q[l] != x) cout << "-1 -1" <<endl; //循环结束 l=r
+        else {
+            cout << l<<' ';
+            int l = 0, r = n - 1;
+            while (l < r) {				// 左区间的右端点
+                int mid = l + r + 1 >> 1;
+                if (q[mid] <= x)  l = mid;	// 如果中点小于等于(等于的话可能右边还有相等点)寻找值，说明寻找值在右边
+                else r = mid - 1 ;
+            }
+            
+            cout << l <<endl;
+            
+        }
+    }
+    return 0;
+}
+```
+
+
+
 ### 2. 浮点数二分
 
 精度一般比要求大2位
@@ -286,6 +344,30 @@ double bsearch_3(double l, double r)
         else l = mid;
     }
     return l;
+}
+```
+
+#### 数的三次方根
+
+给定一个浮点数 n，求它的三次方根。
+
+数据范围：−10000 ≤ n ≤ 10000，结果保留 6 位小数。
+
+```c++
+#include <iostream>
+using namespace std;
+
+int main() {
+    double x;
+    cin >> x; 
+    double l = -10000, r = 10000;
+    while (r - l > 1e-8) {
+        double mid = (l + r) / 2;
+        if (mid * mid * mid >= x) r = mid;
+        else l = mid;
+    } 
+    printf("%lf\n", l);
+    return 0;
 }
 ```
 
@@ -434,24 +516,25 @@ vector<int> div(vector<int> &A, int b, int &r)
 
 ### 1. 一维前缀和
 
+可以迅速求出第 l 个数到第 r 个数的和。
+
 原n			`a1 , a2 , a3 , ... , an`
 
 前缀和	 `Si = a1 + a2 + a3 + ... + ai       S0 = 0`
 
 区间和	 ` sum(l, r) = al + al+1 + al+2 + ... + ar = Sr - Sl-1`
 
-如何求Sv
+如何求 Sv，时间复杂度：
 
-```
-[l, r]     		O(n)
-Sr - S(l-1)		O(1)
-```
+$[l, r]$     		$O(n)$
+$Sr - S(l-1)$		$O(1)$
 
 ```c++
 /*
 S[i] = a[1] + a[2] + ... a[i]
 a[l] + ... + a[r] = S[r] - S[l - 1]
 */
+// 下标由 1 开始
 for(int i = 1; i <= n; i++) cin >> a[i];
 for(int i = 1; i <= n; i++) s[i] = s[i-1] + a[i];
 //区间范围（l, r)
@@ -484,7 +567,7 @@ vector<vector<int>> a(N, vector<int>(N, 0));
 vector<vector<int>> s(N, vector<int>(N, 0));
 
 cin >> n >> m;
-for (int i = 1;i <= n; i++) {
+for (int i = 1; i <= n; i++) {
      for (int j = 1;j <= m; j++){
             cin >> a[i][j];
      }
@@ -517,7 +600,7 @@ cout << s[x2][y2] - s[x1-1][y2] - s[x2][y1-1] + s[x1-1][y1-1] << endl;
 
 然后我们构造一个数组 `b:b[1], b[2], b[3], ..., b[i];`
 
-使得 `a[i] = b[1] + b[2]+ b[3] + ... + b[i]`
+使得 `a[i] = b[1] + b[2] + b[3] + ... + b[i]`
 
 也就是说，`a` 数组是 `b` 数组的前缀和数组，反过来我们把 `b` 数组叫做 `a` 数组的差分数组。
 
@@ -644,8 +727,7 @@ for(int i=x1;i<=x2;i++)
 
 
 ```c++
-void insert(int x1, int y1, int x2, int y2, int c)
-{
+void insert(int x1, int y1, int x2, int y2, int c) {
     b[x1][y1] += c;
     b[x2 + 1][y1] -= c;
     b[x1][y2 + 1] -= c;
@@ -662,22 +744,18 @@ int main()
         for (int j = 1; j <= m; j++)
             insert(i, j, i, j, a[i][j]);      //构建差分数组
     
-    while (q--)
-    {
+    while (q--) {
         int x1, y1, x2, y2, c;
         cin >> x1 >> y1 >> x2 >> y2 >> c;
         insert(x1, y1, x2, y2, c);
     }
-    for (int i = 1; i <= n; i++)
-    {
-        for (int j = 1; j <= m; j++)
-        {
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
             b[i][j] += b[i - 1][j] + b[i][j - 1] - b[i - 1][j - 1];  //二维前缀和
             cout << b[i][j] << " ";
         }
         cout << endl;
     }
-
 }
 
 ```
@@ -705,7 +783,18 @@ for (int i = 0, j = 0; i < n; i ++ ){
 */
 ```
 
+### 最长连续不重复子序列
+
+给定一个长度为 n 的整数序列，请找出最长的不包含重复的数的连续区间，输出它的长度。
+
+输入样例：
+
 ```
+5
+1 2 2 3 5
+```
+
+```c++
 #include<iostream>
 #include<vector>
 #include<algorithm>
@@ -724,16 +813,75 @@ int main() {
         cin >> a[i];
     }
     int res = 0;
-    for(int i = 0,j = 0; i < n; i++) {
+    for(int i = 0,j = 0; i < n; i++) {	// i维护当前元素 j维护记录当前最长序列的首元素
         s[a[i]]++;
-        while( s[a[i]] > 1) {   //i指针指向元素元素个数为2的时候
-            s[a[j]]--;          //清空数组已存元素的个数
+        while (s[a[i]] > 1) {   // i指针指向元素元素个数为2的时候
+            s[a[j]]--;          // 清空数组已存元素的个数
             j++;
         }
         res = max(res, i - j + 1);
     }
-
     cout << res << endl; 
+    return 0;
+}
+```
+
+### 数组元素的目标和
+
+给定两个升序排序的有序数组 A 和 B，以及一个目标值 x。
+
+数组下标从 0 开始，请你求出满足 $A[i]+B[j]=x$ 的数对 $(i,j)$，数据保证有唯一解。
+
+```c++
+#include<iostream>
+using namespace std;
+const int N = 1e5 + 10;
+int a[N], b[N];
+
+int main() {
+    int n, m, x;
+    cin >> n >> m >> x;
+    for (int i = 0; i < n; i++) cin >> a[i];
+    for (int j = 0; j < m; j++) cin >> b[j];
+    
+    for (int i = 0, j = m - 1; i < n; i++) {	 
+        // 找到a[i]+a[j]小于x的j最大的数在移动a[i] 反复这个过程
+        while (j >= 0 && a[i] + b[j] > x) j--;    // O(n+m)
+        if (a[i] + b[j] == x) {
+            cout << i << ' ' << j;
+            break;
+        }
+    }
+    return 0;
+}
+```
+
+### 判断子序列
+
+给定一个长度为 n 的整数序列 $a1,a2,…,an$ 以及一个长度为 m 的整数序列 $b1,b2,…,bm$。
+
+请你判断 a 序列是否为 b 序列的子序列。
+
+子序列指序列的一部分项按**原有次序排列**而得的序列，例如序列 ${a1,a3,a5}$ 是序列 ${a1,a2,a3,a4,a5}$ 的一个子序列。
+
+```c++
+#include<iostream>
+using namespace std;
+
+const int N = 1e5 + 10;
+int a[N], b[N];
+int main() {
+    int n, m;
+    cin >> n >> m;
+    for (int i = 0; i < n; i++) cin >> a[i];
+    for (int i = 0; i < m; i++) cin >> b[i];
+    int i = 0;
+    for (int j = 0; j < m; j++) {
+        if (i < n && a[i] == b[j]) i++;
+    }
+    if (i == n) cout << "Yes" <<endl;
+    else cout << "No" << endl;
+
     return 0;
 }
 ```
@@ -758,6 +906,35 @@ int main() {
 ```
 求x的第k位数字: 	 x >> k & 1
 返回x的最后一位1： lowbit(x) = x & -x  //x & -x = x & (~x + 1)取反+1
+```
+
+### 二进制中1的个数
+
+给定一个长度为 n 的数列，请你求出数列中每个数的二进制表示中 1 的个数。
+
+```c++
+#include<iostream>
+using namespace std;
+
+int lowbit(int n) {
+    return n & -n;
+}
+
+int main() {
+    int n;
+    cin >> n;
+    while (n--) {
+        int x;
+        cin >> x;
+        int res = 0;
+        while (x) {			// eg: x:101100 x1=100, x:101000 x2=1000, x:100000 x3=10000, x = 0 
+            x -= lowbit(x); //每次减去最后一位1，所有1减去之后，值为0，退出循环
+            res++;
+        }
+        cout << res << ' ';
+    }
+    return 0;
+}
 ```
 
 
@@ -1092,7 +1269,6 @@ if (tt > 0){
 ![栈](https://gitee.com/lxxdao/image/raw/master/algorithm/2.2栈.gif)
 
 ```c++
-
 int stk[N], tt = 0;			//时间复杂度O(n)
 for (int i = 1; i <= n; i ++ ) {
     while (tt && check(stk[tt], i)) tt -- ; //如果栈顶元素大于当前待入栈元素，则出栈
@@ -1102,6 +1278,84 @@ for (int i = 1; i <= n; i ++ ) {
         cout << -1 << ' ';//栈顶元素就是左侧第一个比它小的元素
     }    
     stk[ ++ tt] = i;
+}
+// stl版本
+stackt<int> stk;
+for (int i = )
+```
+
+
+
+### 表达式求值
+
+**[题目描述：](https://www.acwing.com/problem/content/3305/)**给定一个表达式，其中运算符仅包含 `+,-,*,/`（加 减 乘 整除），可能包含括号，请你求出表达式的最终值。
+
+“表达式求值”问题，两个核心关键点：
+
+（1）双栈，一个操作数栈，一个运算符栈；
+
+（2）运算符优先级，栈顶运算符，和，即将入栈的运算符的优先级比较：
+如果栈顶的运算符优先级低，新运算符直接入栈
+
+如果栈顶的运算符优先级高，先出栈计算，新运算符再入栈
+
+这个方法的时间复杂度为O(n)，整个字符串只需要扫描一遍。
+
+运算符有 `+-*/()~^&` 都没问题，如果共有 n 个运算符，会有一个 n*n 的优先级表。
+
+```c++
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+#include <stack>
+#include <map>
+
+using namespace std;
+
+stack<int> num;         // 存数字
+stack<char> op;         // 存运算符
+
+// 定义运算符优先级
+unordered_map<char, int> pr{{'+', 1}, {'-', 1}, {'*', 2}, {'/', 2}}; 
+    
+void eval() {           // 末尾运算符操作末尾两数
+    auto b = num.top(); num.pop();  // 第二个操作数
+    auto a = num.top(); num.pop();  // 第一个操作数
+    auto c = op.top(); op.pop();    // 运算符
+    int x;
+    if (c == '+') x = a + b;
+    else if (c == '-') x = a - b;
+    else if (c == '*') x = a * b;
+    else x = a / b;
+    num.push(x);                    // 结果入栈
+}
+
+int main() {
+       
+    string str;
+    cin >> str;
+    for (int i = 0; i < str.size(); i++) {
+        auto c = str[i];
+        if (isdigit(c)) {   // 数字入栈
+            int x = 0, j = i;
+            while (j < str.size() && isdigit(str[j]))
+                x = x * 10 + str[j++] - '0';
+            i = j - 1;      // 更新 i 的位置
+            num.push(x);
+        } else if (c == '(') op.push(c);    // 左括号无优先级，直接入栈
+        else if (c == ')') {                // 遇到右括号计算括号里面的
+            while (op.top() != '(') eval(); // 一直计算到左括号
+            op.pop();                       // 左括号出栈
+        } else {
+            // 待入栈运算符优先级低，则先计算
+            while (op.size() && pr[op.top()] >= pr[c]) eval();
+            op.push(c);                     // 操作符入栈
+        }
+    }
+    while (op.size())eval();    // 最后把没有操作的运算符操作一遍
+    cout << num.top() << endl;
+    return 0;
+    
 }
 ```
 
@@ -1143,7 +1397,11 @@ if (hh <= tt){
 
 ### **单调队列**
 
-常见题型：滑动窗口求窗口最值
+常见题型：**滑动窗口求窗口最值**
+
+给定一个数组以及一个大小为 $k$ 的滑动窗口，它从数组的最左边移动到最右边。
+
+确定滑动窗口位于每个位置时，窗口中的最大值和最小值。
 
 | 窗口位置            | 单调队列过程               | 最小值 | 单调队列过程               | 最大值 |
 | :------------------ | :------------------------- | :----- | -------------------------- | ------ |
@@ -1156,36 +1414,63 @@ if (hh <= tt){
 
 ```c++
 const int N = 1000010;
-int a[N], q[N]; 	//q[N]存的是数组下标
-int hh = 0, tt = -1;//hh队列头 tt队列尾
-//滑动窗口中的最小值
-cin >> n >> k; // n数组长度 k的窗口大小
-for (int i = 0; i < n; i++) {
-    /*
-    维持滑动窗口的大小
-   	当队列不为空(hh <= tt) 且 当当前滑动窗口的大小(i - q[hh] + 1)>我们设定的
-    滑动窗口的大小(k),队列弹出队列头元素以维持滑动窗口的大小
-    */
-    if(hh <= tt && i - q[hh] + 1 > k) hh++;	// 若队首出窗口，hh加1
-    /*
-    构造单调递增队列
-    当队列不为空(hh <= tt) 且 当前元素(a[i])<=队列队尾元素时
-    那么队尾元素就一定不是当前窗口最小值,删去队尾元素
-    加入当前元素(q[ ++ tt] = i)
-    */
-    while (hh <= tt && a[i] <= a[q[tt]]) tt--; 	// 若队尾不单调，tt减1
-    q[++tt] = i;	// 下标加到队尾
-    //i + 1 >= k 数据满k的时候才开始输出
-    if(i + 1 >= k) cout << a[q[hh]] << ' ';
+int a[N], q[N]; 	// q[N]存的是数组下标
+int hh = 0, tt = -1;// hh队列头 tt队列尾
+int n, k;			// n数组长度 k的窗口大小
+
+int main() {
+    cin >> n >> k;
+    for (int i = 0; i < n; i++) cin >> a[i];
+ 	
+    int hh = 0, tt = -1;
+	//滑动窗口中的最小值
+	for (int i = 0; i < n; i++) {
+    	/*
+    	维持滑动窗口的大小
+   		当队列不为空(hh <= tt) 且 当当前滑动窗口的大小(i - q[hh] + 1)>我们设定的
+    	滑动窗口的大小(k),队列弹出队列头元素以维持滑动窗口的大小
+    	*/
+    	if(hh <= tt && i - q[hh] + 1 > k) hh++;	// 若队首出窗口，hh加1
+    	/*
+    	构造单调递增队列
+    	当队列不为空(hh <= tt) 且 当前元素(a[i])<=队列队尾元素时
+    	那么队尾元素就一定不是当前窗口最小值,删去队尾元素
+    	加入当前元素(q[ ++ tt] = i)
+    	*/
+    	while (hh <= tt && a[i] <= a[q[tt]]) tt--; 	// 若队尾不单调，tt减1
+    	q[++tt] = i;	// 下标加到队尾
+    	//i + 1 >= k 数据满k的时候才开始输出
+    	if(i + 1 >= k) cout << a[q[hh]] << ' ';
+	}
+    
+	int hh = 0, tt = -1;
+	//滑动窗口中的最大值
+	for (int i = 0; i < n; i++) {
+    	if(hh <= tt && i - q[hh] + 1 > k) hh++;
+    	while(hh <= tt && a[i] >= a[q[tt]]) tt--;
+    	q[++tt] = i;
+    	if(i + 1 >= k) cout << a[q[hh]] << ' ';
+	}
 }
-int hh = 0, tt = -1;S
-//滑动窗口中的最大值
-for (int i = 0; i < n; i++) {
-    if(hh <= tt && i - q[hh] + 1 > k) hh++;
-    while(hh <= tt && a[i] >= a[q[tt]]) tt--;
-    q[++tt] = i;
-    if(i + 1 >= k) cout << a[q[hh]] << ' ';
-}
+```
+
+**STL双端队列实现**
+
+```c++
+class Solution {
+public:
+    vector<int> maxInWindows(vector<int>& nums, int k) {
+        vector<int> res;
+        deque<int> q;	//队列存储的是下标，因为需要利用下标判断头元素是否划出窗口
+        for (int i = 0;  i < nums.size(); i++) {
+            if (q.size() && q.front() <= i - k) q.pop_front();	 // 超过则弹出队列头元素以维持滑动窗口的大小
+            while (q.size() && nums[i] >= nums[q.back()]) q.pop_back();	// 队尾元素就一定不是当前窗口最大值,删去队尾元素
+            q.push_back(i);
+            if (i + 1 >= k) res.push_back(nums[q.front()]);
+        }
+        return res;
+    }
+};
 ```
 
 
@@ -2300,6 +2585,7 @@ find()
 substr()	
 stot(string)	string转成int		 int
 isdigit(char)	判断字符是否是十进制数 bool
+reverse(s,begin(), s.end()) 
 ```
 
 
