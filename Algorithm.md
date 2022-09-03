@@ -655,7 +655,7 @@ for (int i = 1; i <= n; i++) {
 	b[i] = a[i] - a[i - 1];      	//构建差分数组
 }
 int l, r, c;
-while (m--){
+while (m--) {
    	scanf("%d%d%d", &l, &r, &c);
     cin >> l >> r >> c;
 	b[l] += c;    			   		//将序列中[l, r]之间的每个数都加上c
