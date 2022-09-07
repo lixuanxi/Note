@@ -1274,18 +1274,27 @@ if (tt > 0){
 
 ```c++
 int stk[N], tt = 0;			//时间复杂度O(n)
-for (int i = 1; i <= n; i ++ ) {
-    while (tt && check(stk[tt], i)) tt -- ; //如果栈顶元素大于当前待入栈元素，则出栈
+for (int i = 0; i < n; i ++ ) {				// 注意这里插入的下标还是值
+    while (tt && check(stk[tt], i)) tt -- ; // 如果栈顶元素大于当前待入栈元素，则出栈
 	if (tt) {
-		cout << stk[tt] << ' ';//如果栈空，则没有比该元素小的值。
+		cout << stk[tt] << ' '; // 如果栈空，则没有比该元素小的值。
     }else {
-        cout << -1 << ' ';//栈顶元素就是左侧第一个比它小的元素
+        cout << -1 << ' '; // 栈顶元素就是左侧第一个比它小的元素
     }    
     stk[ ++ tt] = i;
 }
 // stl版本
 stackt<int> stk;
-for (int i = )
+for (int i = 0; i < n; i++) {
+    int x, cin >> x;
+    while (!stk.empty() && stk.top() >= x) stk.pop();
+    if (!stk.empty()) {
+        cout << stk[tt] << ' ';
+    } else {
+        cout << -1 << ' ';
+    }
+    stk.push(x);
+}
 ```
 
 
