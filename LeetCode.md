@@ -560,7 +560,9 @@ public:
 
 1. 定义映射，将单一字母映射到数字。
 2. 从前往后扫描，如果发现 s[i+1] 的数字比 s[i] 的数字大，那么累计 -s[i] 差值即可，并将 i 多向后移动一位；否则直接累计 +s[i] 的值。
+
 **时间复杂度**
+
 仅遍历一次整个字符串，故时间复杂度为 $O(n)$。
 
 ```c++
@@ -589,10 +591,13 @@ public:
 ## 14. 最长公共前缀
 
 **字符串**
+
 暴力枚举方法很简单：先找到所有字符串的最短长度 m，然后从长度 1 到 m 依次枚举判断是否所有字符串的前缀是否都相等。
 
 **时间复杂度**
+
 最坏情况下，对于 $n$ 个字符串，都需要遍历到最短长度
+
 总时间复杂度为 $O(nm)$。
 
 ```C++
@@ -608,6 +613,122 @@ public:
                     return res;
             }
             res += c;
+        }
+        return res;
+    }
+};
+```
+
+
+
+
+
+## 15. 三数之和
+
+**双指针**
+因为没有三指针算法，所以为了处理三个数的和的问题，我们需要先固定一个元素，然后对剩下的数进行双指针算法。
+
+双指针算法的应用前提是要求数组的元素有序，所以需要对原数组进行排序。
+
+同时为了避免答案重复，在枚举过程中需要跳过相同元素。
+
+1. 枚举每个数，先确定 $nums[i]$，在排序后的情况下，通过双指针 $l$，$r$ 分别从左边 $l = i + 1$ 和右边 $r = n - 1$
+  往中间靠拢，找到 `nums[i] + nums[l] + nums[r] == 0` 的所有符合条件的搭配
+2. 判重处理
+  当 `i>0(i不是第一个数) && nums[i] == nums[i - 1]`，表示当前确定好的数与上一个一样，需要直接 `continue`；
+  双指针内当 `sum == 0` 要跳过相同的 $j$ 和 $k$, 当 `sum < 0` 移动 $j$, 当 `sum > 0` 移动 $k$ 。
+
+**时间复杂度**
+
+排序时间复杂度是 $O(nlogn)$，枚举的时间复杂的是 $O(n^2)$
+
+总时间复杂度是 $O(n^2)$
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> res;
+        int n = nums.size();
+        for (int i = 0; i < n - 2; i++) {
+            if(i > 0 && nums[i] == nums[i - 1]) continue;
+            int j = i + 1, k = n - 1;
+            /* if (nums[i] + nums[i + 1] + nums[i + 2] > 0) break; 
+            // 最小的三个数都大于0了，所以跳过
+            if (nums[i] + nums[k - 1] + nums[k] < 0) continue; 
+            // 最大的三个数都小于0了，所以跳过 */
+            while (j < k) {
+                int num = nums[i] + nums[j] + nums[k];
+                if (num == 0) {
+                    res.push_back({nums[i], nums[j], nums[k]});
+                    j++, k--;
+                    while (j < k && nums[j] == nums[j - 1]) j ++; //跳过相同的j
+                    while (j < k && nums[k] == nums[k + 1]) k --; //跳过相同的k
+                } else if (num < 0)	j++;
+                else	k--; 
+            }
+        }
+        return res;
+    }
+};
+```
+
+**另一版本写法**
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        vector<vector<int>> res;
+        sort(nums.begin(), nums.end());
+        for (int i = 0; i < nums.size(); i ++ ) {
+            if (i && nums[i] == nums[i - 1]) continue;
+            for (int j = i + 1, k = nums.size() - 1; j < k; j ++ ) {
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+                while (j < k - 1 && nums[i] + nums[j] + nums[k - 1] >= 0) k -- ;
+                if (nums[i] + nums[j] + nums[k] == 0) {
+                    res.push_back({nums[i], nums[j], nums[k]});
+                }
+            }
+        }
+        return res;
+    }
+};
+
+```
+
+
+
+## 16. 最接近的三数之和
+
+**双指针**
+
+类似 [LeetCode 15.三数之和](#15. 三数之和) 
+
+每三个数更新差的绝对值的最小值,双指针移动判断。
+
+**时间复杂度**
+
+排序时间复杂度是 $O(nlogn)$，枚举的时间复杂的是 $O(n^2)$
+
+总时间复杂度是 $O(n^2)$
+```c++
+class Solution {
+public:
+    int threeSumClosest(vector<int>& nums, int target) {
+        int res = 1e9, n = nums.size();
+        sort(nums.begin(), nums.end());
+        for (int i = 0; i < n - 2; i++) {
+            if (i && nums[i] == nums[i - 1]) continue;
+            int j = i + 1, k = n - 1;
+            while (j < k) {
+                int num = nums[i] + nums[j] + nums[k];
+                if (abs(num - target) < abs(res - target)) res = num;
+                if (num < target) j++;
+                else if (num > target) k--;
+                else return target;
+            }
         }
         return res;
     }
