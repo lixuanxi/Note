@@ -552,3 +552,64 @@ public:
 };
 ```
 
+
+
+## 13. 罗马数字转整数
+
+**哈希表**
+
+1. 定义映射，将单一字母映射到数字。
+2. 从前往后扫描，如果发现 s[i+1] 的数字比 s[i] 的数字大，那么累计 -s[i] 差值即可，并将 i 多向后移动一位；否则直接累计 +s[i] 的值。
+**时间复杂度**
+仅遍历一次整个字符串，故时间复杂度为 $O(n)$。
+
+```c++
+class Solution {
+public:
+    int romanToInt(string s) {
+        unordered_map<char, int> hash;
+        hash['I'] = 1, hash['V'] = 5;
+        hash['X'] = 10, hash['L'] = 50;
+        hash['C'] = 100, hash['D'] = 500;
+        hash['M'] = 1000;
+
+        int res = 0;
+        for (int i = 0; i < s.size(); i++) {
+            if (i + 1 < s.size() && hash[s[i]] < hash[s[i + 1]])
+                res -= hash[s[i]];
+            else res += hash[s[i]];
+        }
+        return res;
+    }
+};
+```
+
+
+
+## 14. 最长公共前缀
+
+**字符串**
+暴力枚举方法很简单：先找到所有字符串的最短长度 m，然后从长度 1 到 m 依次枚举判断是否所有字符串的前缀是否都相等。
+
+**时间复杂度**
+最坏情况下，对于 $n$ 个字符串，都需要遍历到最短长度
+总时间复杂度为 $O(nm)$。
+
+```C++
+class Solution {
+public:
+    string longestCommonPrefix(vector<string>& strs) {
+        string res;
+        for (int i = 0;; i++) {
+            if (i >= strs[0].size()) return res;
+            char c =strs[0][i];
+            for (auto& str: strs) {
+                if (str.size() <= i || str[i] != c)	// 防止越界
+                    return res;
+            }
+            res += c;
+        }
+        return res;
+    }
+};
+```
