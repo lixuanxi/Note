@@ -734,3 +734,291 @@ public:
     }
 };
 ```
+
+
+
+## 17. 电话号码的字母组合
+
+**DFS回溯搜素**
+
+1. 可以通过手工或者循环的方式预处理每个数字可以代表哪些字母。
+2. 通过递归尝试拼接一个新字母。
+3. 递归到目标长度，将当前字母串加入到答案中。
+
+**时间复杂度**
+一数字最多有 $4$ 种情况，假设有 $n$ 个数字，因此 $4^n$ 种情况是一个上限
+总时间复杂度是 $O(4n)$
+
+**递归函数设计：**
+`void dfs(string& digits, int u, string path)` 
+`digits` 字符串数组，`u` 表示枚举到 `digitis` 的第 `u` 个位置，`path` 用来记录路径。
+
+```c++
+class Solution {
+public:
+    vector<string> res;
+    vector<string> str = {
+        "", "", "abc", "def",
+        "ghi", "jkl", "mno",
+        "pqrs", "tuv", "wxyz"
+    };
+    vector<string> letterCombinations(string digits) {
+        if (digits.size() == 0) return res;
+        dfs(digits, 0, "");
+        return res;
+    }
+
+    void dfs(string digits, int u, string path) {
+        if (u == digits.size()) res.push_back(path);
+        else {
+            for (auto c: str[digits[u] - '0'])
+                dfs(digits, u + 1, path + c);
+        }
+    }
+};
+```
+
+
+
+## 18. 四数之和
+
+**双指针**
+
+完全基于 [LeetCode 15.三数之和](#15. 三数之和) 算法的思路，排序后再增加一重循环即可
+
+**时间复杂度**
+
+排序时间复杂度是 $O(nlogn)$，枚举的时间复杂的是 $O(n^3)$
+
+总时间复杂度是 $O(n^3)$
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        int n = nums.size();
+        vector<vector<int>> res;
+        if (n < 4) return res;
+        for (int i = 0; i < n - 3; i++) {
+            if (i && nums[i] == nums[i - 1]) continue;
+            for (int j = i + 1; j < n - 2; j++) {
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+                int l = j + 1, r = n - 1;
+                while (l < r) {
+                    if (nums[i] + nums[j] == target - nums[l] - nums[r]) {
+                        res.push_back({nums[i], nums[j], nums[l], nums[r]});
+                        do l++; while (l < r && nums[l] == nums[l - 1]);
+                        do r--; while (l < r && nums[r] == nums[r + 1]);
+                    } else if (nums[i] + nums[j] < target - nums[l] - nums[r]) l++;
+                    else r--;
+                }
+            }
+        }
+        return res;
+    }
+};
+```
+
+
+
+## 19. 删除链表的倒数第N个节点
+
+**链表**
+
+**时间复杂度**
+
+遍历两次或者一次链表，时间复杂度 $O(n)$
+
+
+
+**遍历两次**
+第一次遍历得到链表总长度 $n$，下标由 $1$ 开始算
+
+删除链表的倒数第 $k$ 个节点，相当于正数第 $n−k+1$ 个节点。
+
+因为是删除第 $k$ 个节点，所以倒数第 $k + 1$ 指向 倒数第 $k-1$个节点
+
+即正数第 $n−k$ 指向  $n−k-1$ 
+
+```c++
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        auto hair = new ListNode(-1);
+        hair->next = head;
+        int num = 0;
+        for (auto p = head; p; p = p->next) num++;		// 求长度从头节点开始
+        auto p = hair;
+        for (int i = 0; i < num - n; i++) p = p->next;
+        p->next = p->next->next;
+        auto res = hair->next;
+        delete hair;
+        return res;
+    }
+};
+```
+
+**快慢指针**
+快指针先走 $k$，然后两个指针同步走，当快指针走到头(最后一个值)时，慢指针就是链表倒数第 $k + 1$ 个节点
+
+将倒数第 $k - 1$ 个节点指向倒数第 $k + 1$ 个节点，实现删除倒数第 $k$ 个节点
+
+```c++
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        auto hair = new ListNode(-1);
+        hair->next = head;
+        auto p = hair, q = hair;
+        while (n--) p = p->next;
+        while (p->next) {
+            p = p->next;
+            q = q->next;
+        }
+        q->next = q->next->next;
+        auto res = hair->next;
+        delete hair;
+        return res;
+    }
+};
+```
+
+
+
+
+
+## 20. 有效的括号
+
+**栈**
+从前往后枚举每个字符
+
+1. 当遇到左括号，则将元素压进栈中
+2. 当遇到右括号时
+    - 如果栈为空，`return false`
+    - 如果栈顶元素是对应的左括号，说明这是匹配的符号，将栈顶元素pop出
+    - 否则，表示不匹配，`return false`
+3. 最后，若栈是空栈，表示所有括号都已经匹配好了，若不是空栈，表示还存在未能匹配的括号
+
+**时间复杂度** $O(n)$
+
+```c++
+class Solution {
+public:
+    bool isValid(string s) {
+        int n = s.size();
+        if (n & 1) return false;
+        unordered_map<char, char> hash;
+        hash['('] = ')';
+        hash['['] = ']';
+        hash['{'] = '}';
+        stack<char> stk;
+        for (auto c: s) {
+            if (c == '(' || c == '[' || c == '{') stk.push(c);
+            else {
+                if (!stk.empty() && hash[stk.top()] == c) stk.pop();
+                else return false;
+            }
+        }
+        return stk.empty();
+    }
+};
+```
+
+
+
+## 21. 合并两个有序链表
+
+**链表**
+
+**迭代**
+
+1. 新建头部的保护结点 `hair`，设置 `cur` 指针指向 `hair`
+2. 若当前 $l1$ 指针指向的结点的值 `val` 比 $l2$ 指针指向的结点的值 `val` 小，则令 `cur` 的 `next` 指针指向 $l1$，且 $l1$ 后移；否则指向 $l2$，且 $l2$ 后移
+3. 然后 `cur` 指针按照上一部设置好的位置后移
+4. 循环以上步骤直到 $l1$ 或 $l2$ 为空
+5. 将剩余的 $l1$ 或 $l2$ 接到 `cur` 指针后边。
+
+**时间复杂度**
+两个链表各遍历一次，所以时间复杂度为 $O(n)$
+```c++
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        auto hair = new ListNode(-1);
+        auto cur = hair;
+        while (list1 && list2) {
+            if (list1->val < list2->val) {
+                cur->next = list1;
+                list1 = list1->next;
+            } else {
+                cur->next = list2;
+                list2 = list2->next;
+            }
+            cur = cur->next;
+        }
+        if (list1) cur->next = list1;
+        if (list2) cur->next = list2;
+        return hair->next;
+    }
+};
+```
+
+**递归**
+```c++
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* list1, ListNode* list2) {
+        if (list1 == nullptr) return list2;
+        if (list2 == nullptr) return list1;
+
+        if (list1->val < list2->val) {
+            list1->next = mergeTwoLists(list1->next, list2);
+            return list1;
+        } else {
+            list2->next = mergeTwoLists(list1, list2->next);
+            return list2;
+        }
+    }
+};
+```
+
+
+
+## 22. 括号生成
+
+**模拟、递归**
+
+括号序列两个结论：
+
+1. 任意前缀中 "(" 数量 ≥ “)" 数量
+2. 左右括号数量相等
+
+**卡特兰数**
+
+给定 $n$ 个 $0$ 和 $n$ 个 $1$ ，它们按照某种顺序排成长度为 $2n$ 的序列，满足任意前缀中 $0$ 的个数都不少于 $1$ 的个数的序列的数量为： $Cat(n) = \frac {C(2n, n)} {(n + 1)}$
+
+**时间复杂度**
+
+$O(\frac {C(2n, n)} {(n + 1)})$
+
+```C++
+class Solution {
+public:
+    vector<string> res;
+    vector<string> generateParenthesis(int n) {
+        dfs(n, 0, 0, "");
+        return res;
+    }
+    void dfs(int n, int lc, int rc, string seq) {
+        if (lc == n && rc ==n) res.push_back(seq);
+        else {
+            if (lc < n) dfs(n, lc + 1, rc, seq +'(');
+            if (rc < n && lc > rc) dfs(n, lc, rc + 1, seq + ')');
+        }
+    }
+};
+```
+
+
+
