@@ -6049,8 +6049,7 @@ void get_primes(int n) {
 vector<int> get_divisors(int n) {
     vector<int> res;
     for (int i = 1; i <= n / i; i ++ )
-        if (n % i == 0)
-        {
+        if (n % i == 0) {
             res.push_back(i);
             if (i != n / i) res.push_back(n / i);	// 避免 i==n/i, 重复放入(n是完全平方数)
         }
@@ -6084,8 +6083,8 @@ $β_1$ 一共有 $0∼α_1$ 种选法 、$β_2$ 一共有 $0∼α_2$ 种选法�
 ```c++
 unordered_map <int,int> primes; // 用来存每个质数的底数和指数
 void get_divisors(int x) {
-    for(int i = 2;i <= x / i;i ++){
-      	while(x % i == 0){ //分解质因子
+    for(int i = 2;i <= x / i;i ++) {
+      	while(x % i == 0) { //分解质因子
       		x /= i;
   			primes[i] ++; //b把这个因数的指数加1
   		}
@@ -6128,13 +6127,89 @@ int gcd(int a, int b) {
 
 
 
+## 3. 欧拉函数
+
+### 1. 欧拉函数的定义
+
+$1∼N$ 中与 $N$ 互质的数的个数被称为欧拉函数，记为 $ϕ(N)$。
+
+若在算数基本定理中，$N=p_1^{a_1}p_2^{a_2}...p_m^{a_m}$，$p_i$ 为质数，则：
+
+$ϕ(N) = N×\frac{p_1-1}{p1}×\frac{p_2-1}{p2}×…×\frac{p_m-1}{pm}$
+
+证明：
+
+![6.3欧拉函数](https://gitee.com/lxxdao/image/raw/master/algorithm/6.3欧拉函数.png)
+
+```c++
+int phi(int x) {
+    int res = x;
+    for (int i = 2; i <= x / i; i ++ )
+        if (x % i == 0) {
+            res = res / i * (i - 1);
+            while (x % i == 0) x /= i;
+        }
+    if (x > 1) res = res / x * (x - 1);
+    return res;
+}
+```
+
+
+
+### 2. 筛法求欧拉函数
+
+基本思路：
+
+欧拉函数是一个 积性函数 就是说 m,n互素 则：$φ(mn)=φ(m)∗φ(n)$
+
+1. 如果 $x$ 是一个素数 $P$
+
+    $x=p, φ(x)=x∗(1−\frac{1}{p})=p∗(\frac{p−1}{p})=p−1$
+
+2. 不是素数的时候 用最小的素因子去计算
+
+    1. `i % p == 0`      $gcd(i,p)=p$      $φ(i)=i∗(1−\frac{1}{p_1})∗…∗(1−\frac{1}{p_k})$
+
+        因为 $p$ 是 $i$ 的因子所以在计算 $φ(i)$ 的已经算过 $p$ 了
+
+        $φ(i∗p)=p∗i∗(1−\frac{1}{p_1})∗…∗(1−\frac{1}{p_k}) φ(i∗p)=p∗φ(i)$
+
+    2. `i % p!=0`     $gcd(i,p)=1φ(i∗p)=φ(i)∗φ(p)=φ(i)∗(p−1)$
 
 
 
 
 
+1. 质数 $i$ 的欧拉函数即为 $phi[i]=i-1$： `1~i-1` 均与 $i$ 互质，共 $i-1$ 个。
+2. $phi[primes[j] * i]$ 分为两种情况：
+    - `i % primes[j] == 0`时：$primes[j]$ 是 $i$ 的最小质因子，也是 $primes[j] * i$ 的最小质因子，因此 $1 - 1 / primes[j]$ 这一项在 $phi[i]$ 中计算过了，只需将基数 $N$ 修正为 $primes[j]$ 倍，最终结果为 $phi[i] * primes[j]$。
+    - `i % primes[j] != 0`：$primes[j]$ 不是 $i$ 的质因子，只是 $primes[j] * i$ 的最小质因子，因此不仅需要将基数 $N$ 修正为 $primes[j]$ 倍，还需要补上 $1 - 1 / primes[j]$ 这一项，因此最终结果 $phi[i] * (primes[j] - 1)$。
 
-
+```c++
+int primes[N], cnt;			// primes[]存储所有素数,cnt存储素数个数
+int phi[N];					// 存储每个数的欧拉函数
+bool st[N];					// st[x]存储x是否被筛掉
+LL get_eulers(int n) {
+    phi[1] = 1;
+    for (int i = 2; i <= n; i++) {
+        if (!st[i]) {
+            primes[cnt++] = i;
+            phi[i] = i - 1;
+        }
+        for (int j = 0; primes[j] <= n / i; j++) {
+            st[primes[j] * i] = true;
+            if (i % primes[j] == 0) {        
+               phi[primes[j] * i] = phi[i] * primes[j];
+               break; 
+            }
+            phi[primes[j] * i] = phi[i] * (primes[j] - 1);
+        }
+    }
+    LL res = 0;
+    for (int i = 1; i <= n; i++) res += phi[i];
+    return res;
+}
+```
 
 
 
