@@ -6039,6 +6039,8 @@ void get_primes(int n) {
 
 
 
+
+
 ## 2. 约数
 
 ### 1. 试除法求约数
@@ -6124,6 +6126,8 @@ int gcd(int a, int b) {
     return b ? gcd(b, a % b) : a;
 }
 ```
+
+
 
 
 
@@ -6217,6 +6221,10 @@ LL get_eulers(int n) {
 
 ## 4. 快速幂
 
+### 1. 快速幂
+
+给定 $n$ 组 $ai,bi,pi$，对于每组数据，求出 $a_i^{b_i}mod\ p_i$的值。
+
 **基本思路**
 
 1. 预处理出 ${a^2}^0$, ${a^2}^1$, ${a^2}^2$,…, ${a^2}^{logb}$ 这 $b$ 个数 
@@ -6234,6 +6242,22 @@ LL get_eulers(int n) {
 - b&1就是判断 b 的二进制表示中第 0 位上的数是否为 1 ,若为 1 , b&1=true ,反之 b&1=false
 
 **快速幂之迭代版** $O(n∗logb)$
+
+```c++
+typedef long long LL;
+
+LL qmi(int a, int b, int p) {
+    LL res = 1;
+    while (b) {
+        if (b & 1) res = res * a % p;
+        a = a * (LL)a % p;
+        b >>= 1;
+    }
+    return res;
+}
+```
+
+
 
 ```c++
 #include <iostream>
@@ -6263,3 +6287,324 @@ int main() {
     return 0;
 }
 ```
+
+
+
+### 2. 快速幂求逆元
+
+#### 乘法逆元的定义
+
+若整数 $b，m$ 互质**（一定要互质，否则无解）**，并且对于任意的整数 $a$，如果满足 $b|a$ (b能整除a, a % b == 0)，则存在一个整数 $x$，使得 $a/b≡a×x(mod\ m)$，则称 $x$ 为 $b$ 的模 $m$乘法逆元，记为 $b^{−1}(mod\ m)$
+$b$ 存在乘法逆元的充要条件是 $b$ 与模数 $m$ 互质。当模数 $m$ 为质数时，$b^{m−2}$ 即为 $b$ 的乘法逆元。
+
+1. 当 $m$ 为质数时，可以用快速幂求逆元：
+
+    a / b ≡ a * x (mod m) 
+
+    两边同乘 b 可得 a ≡ a * b * x (mod m)
+
+    即 1 ≡ b * x (mod m)  同 b * x ≡ 1 (mod m)
+
+    由费马小定理可知，当 m 为质数时
+
+    b ^ (m - 1) ≡ 1 (mod m)
+
+    拆一个 b 出来可得 b * b ^ (m - 2) ≡ 1 (mod m)
+
+    故当m为质数时，b的乘法逆元 x = b ^ (m - 2)
+
+2. 当n不是质数时，可以用扩展欧几里得算法求逆元：
+
+    a有逆元的充要条件是 a 与 p 互质，所以 gcd(a, p) = 1
+
+    假设 a 的逆元为 x，那么有a * x ≡ 1 (mod p)
+
+    等价：ax + py = 1, exgcd(a, p, x, y)
+
+```c++
+typedef long long LL;
+
+LL qmi(int a, int b, int p) {
+    LL res = 1;
+    while (b) {
+        if (b & 1) res = res * a % p;
+        a = a * (LL)a % p;
+        b >>= 1;
+    }
+    return res;
+}
+int a, p;
+qmi(a, p - 2, p)
+```
+
+
+
+
+
+## 5. 扩展欧几里得算法
+
+**蜚蜀定理**
+
+对与任意正整数 $a, b$ ，一定存在非零整数 $x, y$ ，使得 $ax + by = gcd(a, b)$
+
+### 1. 扩展欧几里得算法
+
+用于求解方程 $ax+by=gcd(a,b)$ 的解
+
+1. 当 $b=0$ 时 $ax+by=a$ 故而 $x=1,y=0$
+
+2. 当 $b≠0$ 时
+
+    因为       $gcd(a,b)=gcd(b,a\%b)$
+
+    而          $bx′+(a\%b)y′=gcd(b,a\%b)$
+
+    ​              $bx′+(a−⌊a/b⌋∗b)y′=gcd(b,a\%b)$
+
+    ​              $ay′+b(x′−⌊a/b⌋∗y′)=gcd(b,a\%b)=gcd(a,b)$
+
+    故而       $x=y′,y=x′−⌊a/b⌋∗y′$
+
+    因此可以采取递归算法 先求出下一层的 $x′$和 $y′$ 再利用上述公式回代即可
+
+```c++
+// 求x, y，使得ax + by = gcd(a, b)
+int exgcd(int a, int b, int &x, int &y){
+    if (!b){
+        x = 1, y = 0;
+        return a;
+    }
+    int d = exgcd(b, a % b, y, x);
+    y -= a / b * x;
+    return d; 
+}
+```
+
+
+
+### 2. 线性同余方程
+
+给定 $n$ 组数据 $a_i,b_i,m_i$，对于每组数求出一个 $x_i$，使其满足 $a_i×x_i≡b_i(mod\ m_i)$，如果无解则输出 `impossible`。
+
+1. $a∗x≡b(mod\ m)a∗x≡b(mod\ m)$ 等价于 $a∗x−b$ 是 $m$ 的倍数，因此线性同余方程等价为 $a∗x+m∗y=b$
+2. 根据 Bezout 定理，上述等式有解当且仅当 $gcd(a,m)|b$
+3. 因此先用扩展欧几里得算法求出一组整数 $x_0,y_0$, 使得 $a∗x_0+m∗y_0=gcd(a,m)$。
+4. 然后 $x=x_0∗b/gcd(a,m)\%m$  即是所求。
+
+```c++
+int exgcd(int a, int b, int &x, int &y){
+    if (!b){
+        x = 1, y = 0;
+        return a;
+    }
+    int d = exgcd(b, a % b, y, x);
+    y -= a / b * x;
+    return d; 
+}
+
+int main() {
+    int d = exgcd(a, m, x, y);
+   	if (b % d) puts("impossible");
+   	else printf("%d\n", (LL)b / d * x % m);
+    return 0;
+}
+```
+
+
+
+
+
+## 6. 中国剩余定理
+
+### 表达整数的奇怪方式
+
+给定 $2n$ 个整数 $a_1,a_2,…,a_n$ 和 $m_1,m_2,…,m_n$，求一个最小的非负整数 $x$，满足 $∀i∈[1,n],x≡mi(mod \ a_i)$
+
+先计算两个线性同余方程组的解,之后依此类推
+
+$x≡mi(mod \ a_1)$，$x≡mi(mod \ a_2)$ 改写成
+
+$x=k_1∗a_1+m_1$， $x=k_2∗a_2+m_2$ ⟶ $k_1∗a_1−k_2∗a_2=m_2−m_1$
+
+根据裴蜀定理,当 $m_2−m_1$ 为 $gcd(a_1,−a_2)$ 的倍数时,方程有无穷组整数解
+
+$k_1∗a_1−k_2∗a_2=gcd(a_1,−a_2)=d$ 可以用拓展欧几里得算法来解,即 $exgcd(a_1,−a_2,k_1,k_2)$
+
+若$gcd(a1,−a2)∤m2−m1$，则无解。
+
+$k_1=k_1+k∗\frac{a_2}{d}$，$k_2=k_2+k∗\frac{a_1}{d}$
+
+$x=k_1*a_1+m_1+\frac{a_2}{d}*a_1*k$，经过n−1次后可以将n个线性同余方程合并为一个方程。
+
+**时间复杂度$O(log(a1+a2))$**
+
+```c++
+#include <iostream>
+#include <algorithm>
+
+using namespace std;
+
+typedef long long LL;
+
+LL exgcd(LL a, LL b, LL &x, LL &y) {
+    if (!b) {
+        x = 1, y = 0;
+        return a;
+    }
+
+    LL d = exgcd(b, a % b, y, x);
+    y -= a / b * x;
+    return d;
+}
+
+
+int main() {
+    int n;
+    cin >> n;
+
+    LL x = 0, m1, a1;
+    cin >> m1 >> a1;
+    for (int i = 0; i < n - 1; i ++ ) {
+        LL m2, a2;
+        cin >> m2 >> a2;
+        LL k1, k2;
+        LL d = exgcd(m1, m2, k1, k2);
+        if ((a2 - a1) % d) {
+            x = -1;
+            break;
+        }
+
+        k1 *= (a2 - a1) / d;
+        k1 = (k1 % (m2/d) + m2/d) % (m2/d);
+
+        x = k1 * m1 + a1;
+
+        LL m = abs(m1 / d * m2);
+        a1 = k1 * m1 + a1;
+        m1 = m;
+    }
+    if (x != -1) x = (a1 % m1 + m1) % m1;
+    cout << x << endl;
+    return 0;
+}
+```
+
+
+
+
+
+## 7. 高斯消元
+
+### 1. 高斯消元解线性方程组
+
+- 通过初等行变换 把 增广矩阵 化为 阶梯型矩阵 并回代 得到方程的解
+- 适用于求解 包含 $n$ 个方程，$n$ 个未知数的多元线性方程组
+
+
+
+
+
+## 8. 组合数
+
+### 1.  求组合数 I
+
+题型:给定两个正整数 $a$ 与 $b$ $(1≤b≤a≤2000)$,求 $C_{b}^{a}\ mod\ (1e9+7)$
+
+递推式：$C_{a}^{b} = C_{a-1}^{b-1} + C_{a-1}^{b}$
+
+$C_{a}^{b}$ 的含义就是可以理解成中 $a$ 位巨佬中选出 $b$ 位巨佬的总方案数
+
+第一类选某一个巨佬，从剩下$a-1$中选$b-1$个，第二类不选这一个巨佬，从剩下$a-1$中选$b$个
+
+```c++
+// c[a][b] 表示从a个苹果中选b个的方案数
+for (int i = 0; i < N; i ++ )
+    for (int j = 0; j <= i; j ++ )
+        if (!j) c[i][j] = 1;
+        else c[i][j] = (c[i - 1][j] + c[i - 1][j - 1]) % mod;
+```
+
+
+
+### 2. 求组合数 II
+
+题型:给定两个正整数 $a$ 与 $b$ $(1≤b≤a≤10^5)$,求 $C_{b}^{a}\ mod\ (1e9+7)$
+
+通过预处理逆元的方式求组合数：
+
+$C_{a}^{b} = \frac{a!}{b!*(a-b)!}$，用 $b^-1$ 表示 $b$ 的逆元，可以用快速幂求逆元
+
+$C_{a}^{b}=a!*b!^{-1}*(a-b)!^{-1}$
+
+$fact[i]$ 和 $infact[i]$ 代表 $i$ 的 阶乘 和 阶乘逆元
+
+**快速幂求组合数 $O(a∗log(mod))$**
+
+```c++
+首先预处理出所有阶乘取模的余数fact[N]，以及所有阶乘取模的逆元infact[N]
+如果取模的数是质数，可以用费马小定理求逆元
+int qmi(int a, int k, int p) {	 // 快速幂模板
+
+    int res = 1;
+    while (k) {
+        if (k & 1) res = (LL)res * a % p;
+        a = (LL)a * a % p;
+        k >>= 1;
+    }
+    return res;
+}
+
+// 预处理阶乘的余数和阶乘逆元的余数
+fact[0] = infact[0] = 1;
+for (int i = 1; i < N; i ++ ) {
+    fact[i] = (LL)fact[i - 1] * i % mod;
+    infact[i] = (LL)infact[i - 1] * qmi(i, mod - 2, mod) % mod;
+}
+```
+
+
+
+### 3. 求组合数 III
+
+1. Lucas定理：$C_{a}^{b}≡C_{a\%p}^{b\%p} *C_\frac{a}{p}^\frac{b}{p}(mod\ p)$
+
+2. $C_{a}^{b}=\frac{a!}{(a−b)!∗b!}=\frac{a∗(a−1)∗(a−2)∗…∗(a−b+1)∗(a−b)∗…∗1}{(a−b)∗(a−b−1)∗…∗1∗b!}=\frac{a∗(a−1)∗(a−2)∗…*(a−b+1)}{b!}$
+
+    因此就可以递推的每次乘 $a$ 然后除以 $b$, 因为从 $a$ 到 $a−b+1$
+
+    所以就是乘 $b$ 次
+
+```c++
+若p是质数，则对于任意整数 1 <= m <= n，有：
+    C(n, m) = C(n % p, m % p) * C(n / p, m / p) (mod p)
+
+int qmi(int a, int k, int p) {	// 快速幂模板
+
+    int res = 1 % p;
+    while (k) {
+        if (k & 1) res = (LL)res * a % p;
+        a = (LL)a * a % p;
+        k >>= 1;
+    }
+    return res;
+}
+
+int C(int a, int b, int p)	{ // 通过定理求组合数C(a, b)
+
+    if (a < b) return 0;
+
+    LL x = 1, y = 1;  // x是分子，y是分母
+    for (int i = a, j = 1; j <= b; i --, j ++ ) {
+        x = (LL)x * i % p;
+        y = (LL) y * j % p;
+    }
+
+    return x * (LL)qmi(y, p - 2, p) % p;
+}
+
+int lucas(LL a, LL b, int p) {
+    if (a < p && b < p) return C(a, b, p);
+    return (LL)C(a % p, b % p, p) * lucas(a / p, b / p, p) % p;
+}
+```
+
