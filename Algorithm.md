@@ -2,6 +2,10 @@
 
 
 
+
+
+
+
 算法
 
 1. 上课 学习思想 
@@ -1287,7 +1291,7 @@ for (int i = 0; i < n; i ++ ) {				// 注意这里插入的下标还是值
     stk[ ++ tt] = i;
 }
 // stl版本
-stackt<int> stk;
+stack<int> stk;
 for (int i = 0; i < n; i++) {
     int x, cin >> x;
     while (!stk.empty() && stk.top() >= x) stk.pop();
@@ -6944,11 +6948,13 @@ int main() {
 
 # **第七章 二叉树**
 
-## 二叉树的种类
+## 1. 理论基础
+
+### 二叉树的种类
 
 在我们解题过程中二叉树有两种主要的形式：满二叉树和完全二叉树。
 
-### 满二叉树
+#### 满二叉树
 
 满二叉树：如果一棵二叉树只有度为0的结点和度为2的结点，并且度为0的结点在同一层上，则这棵二叉树为满二叉树。
 
@@ -6956,7 +6962,7 @@ int main() {
 
 这棵二叉树为满二叉树，也可以说深度为 $k$，有 $2^k-1$ 个节点的二叉树。
 
-### 完全二叉树
+#### 完全二叉树
 
 什么是完全二叉树？
 
@@ -6970,7 +6976,7 @@ int main() {
 
 **之前我们刚刚讲过优先级队列其实是一个堆，堆就是一棵完全二叉树，同时保证父子节点的顺序关系。**
 
-### 二叉搜索树
+#### 二叉搜索树
 
 前面介绍的树，都没有数值的，而二叉搜索树是有数值的了，**二叉搜索树是一个有序树**。
 
@@ -6982,7 +6988,7 @@ int main() {
 
 ![6.1.3二叉搜索树](https://gitee.com/lxxdao/image/raw/master/algorithm/6.1.3二叉搜索树.png)
 
-### 平衡二叉搜索树
+#### 平衡二叉搜索树
 
 平衡二叉搜索树：又被称为 AVL（Adelson-Velsky and Landis）树，且具有以下性质：它是一棵空树或它的左右两个子树的高度差的绝对值不超过 $1$，并且左右两个子树都是一棵平衡二叉树。
 
@@ -6998,7 +7004,7 @@ int main() {
 
 
 
-##  二叉树的存储方式
+###  二叉树的存储方式
 
 **二叉树可以链式存储，也可以顺序存储。**
 
@@ -7026,7 +7032,7 @@ int main() {
 
 
 
-## 二叉树的遍历方式
+### 二叉树的遍历方式
 
 关于二叉树的遍历方式，要知道二叉树遍历的基本方式都有哪些。
 
@@ -7074,7 +7080,7 @@ int main() {
 
 
 
-## 二叉树的定义
+### 二叉树的定义
 
 刚刚我们说过了二叉树有两种存储方式顺序存储，和链式存储，顺序存储就是用数组来存，这个定义没啥可说的，我们来看看链式存储的二叉树节点的定义方式。
 
@@ -7096,3 +7102,265 @@ struct TreeNode {
 **在现场面试的时候 面试官可能要求手写代码，所以数据结构的定义以及简单逻辑的代码一定要锻炼白纸写出来。**
 
 因为我们在刷 Leetcode 的时候，节点的定义默认都定义好了，真到面试的时候，需要自己写节点定义的时候，有时候会一脸懵逼!
+
+
+
+## 2. 递归遍历
+
+**递归三要素：**
+
+1. **确定递归函数的参数和返回值：** 确定哪些参数是递归的过程中需要处理的，那么就在递归函数里加上这个参数， 并且还要明确每次递归的返回值是什么进而确定递归函数的返回类型。
+2. **确定终止条件：** 写完了递归算法,  运行的时候，经常会遇到栈溢出的错误，就是没写终止条件或者终止条件写的不对，操作系统也是用一个栈的结构来保存每一层递归的信息，如果递归没有终止，操作系统的内存栈必然就会溢出。
+3. **确定单层递归的逻辑：** 确定每一层递归需要处理的信息。在这里也就会重复调用自己来实现递归的过程。
+
+**以下以前序遍历为例：**
+
+1. **确定递归函数的参数和返回值**：因为要打印出前序遍历节点的数值，所以参数里需要传入vector在放节点的数值，除了这一点就不需要在处理什么数据了也不需要有返回值，所以递归函数返回类型就是void，代码如下：
+
+    ```c++
+    void traversal(TreeNode* cur, vector<int>& vec)
+    ```
+
+2. **确定终止条件**：在递归的过程中，如何算是递归结束了呢，当然是当前遍历的节点是空了，那么本层递归就要要结束了，所以如果当前遍历的这个节点是空，就直接return，代码如下：
+
+    ```c++
+    if (cur == NULL) return;
+    ```
+
+3. **确定单层递归的逻辑**：前序遍历是中左右的循序，所以在单层递归的逻辑，是要先取中节点的数值，代码如下：
+
+    ```c++
+    vec.push_back(cur->val);    // 中
+    traversal(cur->left, vec);  // 左
+    traversal(cur->right, vec); // 右
+    ```
+
+**前序遍历：**
+
+```c++
+class Solution {
+public:
+    vector<int> preorderTraversal(TreeNode* root) {
+        vector<int> res;
+        pre(root, res);
+        return res;
+    }
+    void pre(TreeNode* root, vector<int>& res) {
+        if (root == NULL) return;
+        res.push_back(root->val);// 中
+        pre(root->left, res);	 // 左
+        pre(root->right, res);	 // 右
+    }
+};
+```
+
+**中序遍历：**
+
+```c++
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        vector<int> res;
+        inorder(root, res);
+        return res;
+    }
+    void inorder(TreeNode* root, vector<int>& res) {
+        if (root == NULL) return;
+        inorder(root->left, res);	// 左
+        res.push_back(root->val);	// 中
+        inorder(root->right, res);	// 右
+    }
+};
+```
+
+**后序遍历：**
+
+```c++
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        vector<int> res;
+        pos(root, res);
+        return res;
+    }
+    void pos(TreeNode* root, vector<int>& res) {
+        if (root == NULL) return;
+        pos(root->left, res);		// 左
+        pos(root->right, res);		// 右
+        res.push_back(root->val);	// 中
+    }
+};
+```
+
+
+
+## 3. 迭代遍历
+
+**前序遍历：**
+
+前序遍历是中左右，每次先处理的是中间节点，那么先将根节点放入栈中，然后将右孩子加入栈，再加入左孩子。
+
+```c++
+class Solution {
+public:
+    vector<int> preorderTraversal(TreeNode* root) {
+        stack<TreeNode*> st;
+        vector<int> res;
+        if (root == NULL) return res;
+        st.push(root);
+        while (!st.empty()) {
+            TreeNode * node = st.top();                 // 中
+            st.pop();
+            res.push_back(node->val);
+            if (node->right) st.push(node->right);      // 右（空节点不入栈）
+            if (node->left) st.push(node->left);        // 左（空节点不入栈）
+        }
+        return res;
+    }
+};
+```
+
+**中序遍历：**
+
+中序遍历是左中右，先访问的是二叉树顶部的节点，然后一层一层向下访问，直到到达树左面的最底部，再开始处理节点（也就是在把节点的数值放进result数组中），这就造成了**处理顺序和访问顺序是不一致的。**
+
+那么**在使用迭代法写中序遍历，就需要借用指针的遍历来帮助访问节点，栈则用来处理节点上的元素。**
+
+```c++
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        vector<int> res;
+        stack<TreeNode*> st;
+        auto cur = root;
+        while (cur != NULL || !st.empty()) {
+            if (cur != NULL) {						// 指针来访问节点，访问到最底层
+                st.push(cur);						// 将访问的节点放进栈
+                cur = cur->left;					// 左
+            } else {
+                cur = st.top();						// 从栈里弹出的数据，就是要处理的数据
+                st.pop();
+                res.push_back(cur->val);			// 中
+                cur = cur->right;					// 右
+            }
+        }
+        return res;
+    }
+};
+```
+
+**可以将访问的节点放入栈中，把要处理的节点也放入栈中但是要做标记。**
+
+如何标记呢，**就是要处理的节点放入栈之后，紧接着放入一个空指针作为标记。** 这种方法也可以叫做标记法。
+
+```c++
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        vector<int> res;
+        stack<TreeNode*> st;
+        if (root != NULL) st.push(root);
+        while (!st.empty()) {
+            TreeNode* node = st.top();
+            if (node != NULL) {
+                st.pop();       // 将该节点弹出，避免重复操作，下面再将右中左节点添加到栈中
+                if (node->right) st.push(node->right); 	// 右
+                st.push(node);  // 中
+                st.push(NULL);  // 中节点访问过，但是还没有处理，加入空节点做为标记。
+                if (node->left) st.push(node->left); 	// 左  
+            } else {            // 只有遇到空节点的时候，才将下一个节点放进结果集
+                st.pop();           // 将空节点弹出
+                node = st.top();    // 重新取出栈中元素
+                st.pop();           
+                res.push_back(node->val);   // 加入到结果集
+            }
+        }
+        return res;
+    }
+};
+```
+
+
+
+**后序遍历：**
+
+后序遍历左右中，前序遍历中左右，**可以把前序遍历改成中右左写法，最后翻转数组**
+
+```c++
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        vector<int> res;
+        stack<TreeNode*> st;
+        if (root == NULL) return res;
+        st.push(root);
+        while (!st.empty()) {
+            TreeNode* node = st.top();
+            st.pop();
+            res.push_back(node->val);
+            if (node->left) st.push(node->left);		
+            if (node->right) st.push(node->right); 	// 先进先出，中右左
+        }
+        reverse(res.begin(), res.end());
+        return res;
+    }
+};
+```
+
+
+
+## 4. 层序遍历
+
+层序遍历一个二叉树。就是从左到右一层一层的去遍历二叉树。
+
+需要借用一个辅助数据结构即队列来实现，**队列先进先出，符合一层一层遍历的逻辑，而是用栈先进后出适合模拟深度优先遍历也就是递归的逻辑。**
+
+**而这种层序遍历方式就是图论中的广度优先遍历，只不过我们应用在二叉树上。**
+
+**队列写法：**
+
+```c++
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int>> res;
+        queue<TreeNode*> q;
+        if (root) q.push(root);
+        while (!q.empty()) {
+            int n = q.size();
+            vector<int> temp;
+            for (int i = 0; i < n; i++) {
+                TreeNode* node = q.front();
+                q.pop();
+                temp.push_back(node->val);
+                if (node->left) q.push(node->left);
+                if (node->right) q.push(node->right);
+            }
+            res.push_back(temp);
+        }
+        return res;
+    }
+};
+```
+
+**递归写法：**
+
+```c++
+class Solution {
+public:
+    void order(TreeNode* cur, vector<vector<int>>& res, int depth) {
+        if (cur == NULL) return;
+        if (res.size() == depth) res.push_back(vector<int>());
+        res[depth].push_back(cur->val);
+        order(cur->left, res, depth + 1);
+        order(cur->right, res, depth + 1); 
+    }
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int>> res;
+        int depth = 0;
+        order(root, res, depth);
+        return res;
+    }
+};
+```
+
