@@ -1660,7 +1660,7 @@ s[N], p[M]
 for (int i = 1; i <= n; i ++) {
 	bool flag = true;
 	for (int j = 1; j <= m; j++) {
-		if(s[i + j -1] != p[j]){
+		if(s[i + j - 1] != p[j]){
 			flag = false;
 			break;
 		}
@@ -2606,6 +2606,9 @@ substr()
 stot(string)	string转成int		 int
 isdigit(char)	判断字符是否是十进制数 bool
 reverse(s,begin(), s.end()) 
+
+string::npos    是npos是一个常数，表示size_t的最大值
+许多容器都提供这个东西，用来表示不存在的位置,类型一般是std::container_type::size_type
 ```
 
 
@@ -7105,7 +7108,9 @@ struct TreeNode {
 
 
 
-## 2. 递归遍历
+## 2. 遍历方式
+
+### 1. 递归遍历
 
 **递归三要素：**
 
@@ -7194,7 +7199,7 @@ public:
 
 
 
-## 3. 迭代遍历
+### 2. 迭代遍历
 
 **前序遍历：**
 
@@ -7309,7 +7314,7 @@ public:
 
 
 
-## 4. 层序遍历
+### 3. 层序遍历
 
 层序遍历一个二叉树。就是从左到右一层一层的去遍历二叉树。
 
@@ -7360,6 +7365,820 @@ public:
         int depth = 0;
         order(root, res, depth);
         return res;
+    }
+};
+```
+
+
+
+## 3. 翻转二叉树
+
+[226. 翻转一棵二叉树](https://leetcode.cn/problems/invert-binary-tree/)：给你一棵二叉树的根节点 `root` ，翻转这棵二叉树，并返回其根节点。
+
+可以发现翻转后的树就是将原树的所有节点的左右儿子互换！
+
+**注意只要把每一个节点的左右孩子翻转一下，就可以达到整体翻转的效果。**
+
+遍历顺序：前序遍历
+
+### 递归法
+
+递归三部曲：
+
+1. 确定递归函数的参数和返回值
+
+    参数就是要传入节点的指针，不需要其他参数了，通常此时定下来主要参数，如果在写递归的逻辑中发现还需要其他参数的时候，随时补充。
+
+    返回值的话其实也不需要，但是题目中给出的要返回root节点的指针，可以直接使用题目定义好的函数，所以就函数的返回类型为`TreeNode*`.
+
+    ```c++
+    TreeNode* invertTree(TreeNode* root)
+    ```
+
+2. 确定终止条件
+
+    当前节点为空的时候，就返回
+
+    ```c++
+    if (root == NULL) return root;
+    ```
+
+3. 确定单层递归的逻辑
+
+    因为是先前序遍历，所以先进行交换左右孩子节点，然后反转左子树，反转右子树。
+
+    ```c++
+    swap(root->left, root->right);
+    invertTree(root->left);
+    invertTree(root->right);
+    ```
+
+```c++
+class Solution {
+public:
+    TreeNode* invertTree(TreeNode* root) {
+        if (root == NULL) return root;
+        swap(root->left, root->right);  // 中 前序遍历
+        invertTree(root->left);         // 左
+        invertTree(root->right);        // 右
+        return root;
+    }
+};
+```
+
+
+
+### 迭代法
+
+**深度优先遍历**
+
+递归能做的，栈也能做。
+
+```c++
+class Solution {
+public:
+    TreeNode* invertTree(TreeNode* root) {
+        if (root == NULL) return root;
+        stack<TreeNode*> st;
+        st.push(root);
+        while(!st.empty()) {
+            TreeNode* node = st.top();              // 中
+            st.pop();
+            swap(node->left, node->right);
+            if(node->right) st.push(node->right);   // 右
+            if(node->left) st.push(node->left);     // 左
+        }
+        return root;
+    }
+};
+```
+
+**广度优先遍历**
+
+也就是层序遍历，层数遍历也是可以翻转这棵树的，因为层序遍历也可以把每个节点的左右孩子都翻转一遍，代码如下：
+
+```c++
+class Solution {
+public:
+    TreeNode* invertTree(TreeNode* root) {
+        queue<TreeNode*> que;
+        if (root != NULL) que.push(root);
+        while (!que.empty()) {
+            int size = que.size();
+            for (int i = 0; i < size; i++) {
+                TreeNode* node = que.front();
+                que.pop();
+                swap(node->left, node->right); // 节点处理
+                if (node->left) que.push(node->left);
+                if (node->right) que.push(node->right);
+            }
+        }
+        return root;
+    }
+};
+```
+
+
+
+## 4. 对称二叉树
+
+[101. 对称二叉树](https://leetcode.cn/problems/symmetric-tree/)：给定一个二叉树，检查它是否是镜像对称的。
+
+**判断对称二叉树要比较的是哪两个节点，要比较的可不是左右节点！**
+
+对于二叉树是否对称，要比较的是根节点的左子树与右子树是不是相互翻转的，理解这一点就知道了**其实我们要比较的是两个树（这两个树是根节点的左右子树）**，所以在递归遍历的过程中，也是要同时遍历两棵树。
+
+那么如果比较呢？
+
+比较的是两个子树的里侧和外侧的元素是否相等。
+
+遍历顺序：后序遍历
+
+要通过递归函数的返回值来判断两个子树的内侧节点和外侧节点是否相等。
+
+**正是因为要遍历两棵树而且要比较内侧和外侧节点，所以准确的来说是一个树的遍历顺序是左右中，一个树的遍历顺序是右左中。**
+
+### 递归法
+
+递归三部曲：
+
+1. 确定递归函数的参数和返回值
+
+    因为我们要比较的是根节点的两个子树是否是相互翻转的，进而判断这个树是不是对称树，所以要比较的是两个树，参数自然也是左子树节点和右子树节点。
+
+    返回值自然是bool类型。
+
+    ```c++
+    bool dfs(TreeNode* p, TreeNode* q)
+    ```
+
+2. 确定终止条件
+
+    要比较两个节点数值相不相同，首先要把两个节点为空的情况弄清楚！否则后面比较数值的时候就会操作空指针了。
+
+    节点为空的情况有：（**注意我们比较的其实不是左孩子和右孩子，所以如下我称之为左节点右节点**）
+
+    - 左为空，右不为空，不对称，return false
+    - 左不为空，右为空，不对称 return  false
+    - 左右都为空，对称，返回true
+    - 左右都不为空，比较节点数值
+
+    ```c++
+    if (p == NULL && q != NULL) return false;
+    else if (p != NULL && q == NULL) return false;
+    else if (p == NULL && q == NULL) return true;
+    else if (p->val != q->val) return false;
+    ```
+
+    前面三种情况可以简写成：
+
+    ```c++
+     if (!p || !q) return !p && !q;  // 同时为空返回true 一个为空一个不为空返回false
+    ```
+
+3. 确定单层递归的逻辑
+
+    - 两个子树的根节点值相等；
+    - 第一棵子树的左子树和第二棵子树的右子树互为镜像，且第一棵子树的右子树和第二棵子树的左子树互为镜像；
+
+    ```c++
+     return p->val == q->val && dfs(p->left, q->right) && dfs(p->right, q->left);
+    ```
+
+```c++
+class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        if (!root) return true;
+        return dfs(root->left, root->right);
+    }
+
+    bool dfs(TreeNode* p, TreeNode* q) {
+        if (!p || !q) return !p && !q;  // 同时为空返回true 一个为空一个不为空返回false
+        return p->val == q->val && dfs(p->left, q->right) && dfs(p->right, q->left);
+    }
+};
+```
+
+### 迭代法
+
+我们可以使用队列来比较两个树（根节点的左右子树）是否相互翻转。
+
+**使用队列**
+
+通过队列来判断根节点的左子树和右子树的内侧和外侧是否相等
+
+```c++
+class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        if (root == NULL) return true;
+        queue<TreeNode*> que;
+        que.push(root->left);   // 将左子树头结点加入队列
+        que.push(root->right);  // 将右子树头结点加入队列
+        
+        while (!que.empty()) {  // 接下来就要判断这两个树是否相互翻转
+            TreeNode* leftNode = que.front(); que.pop();
+            TreeNode* rightNode = que.front(); que.pop();
+            if (!leftNode && !rightNode) {  // 左节点为空、右节点为空，此时说明是对称的
+                continue;
+            }
+
+            // 左右一个节点不为空，或者都不为空但数值不相同，返回false
+            if ((!leftNode || !rightNode || (leftNode->val != rightNode->val))) {
+                return false;
+            }
+            que.push(leftNode->left);   // 加入左节点左孩子
+            que.push(rightNode->right); // 加入右节点右孩子
+            que.push(leftNode->right);  // 加入左节点右孩子
+            que.push(rightNode->left);  // 加入右节点左孩子
+        }
+        return true;
+    }
+};
+```
+
+**使用栈**
+
+这个迭代法，其实是把左右两个子树要比较的元素顺序放进一个容器，然后成对成对的取出来进行比较，那么其实使用栈也是可以的，只需把队列原封不动改成栈。
+
+
+
+## 5. 深度问题
+
+### 1. 二叉树的最大深度
+
+[104. 二叉树的最大深度](https://leetcode.cn/problems/maximum-depth-of-binary-tree/)
+
+给定一个二叉树，找出其最大深度。
+
+二叉树的深度为根节点到最远叶子节点的最长路径上的节点数。
+
+**说明:** 叶子节点是指没有子节点的节点。
+
+**递归法**
+
+本题可以使用前序（中左右），也可以使用后序遍历（左右中），使用前序求的就是深度，使用后序求的是高度。
+
+- 二叉树节点的深度：指从根节点到该节点的最长简单路径边的条数或者节点数（取决于深度从0开始还是从1开始）
+- 二叉树节点的高度：指从该节点到叶子节点的最长简单路径边的条数后者节点数（取决于高度从0开始还是从1开始）
+
+**而根节点的高度就是二叉树的最大深度**，所以本题中我们通过后序求的根节点高度来求的二叉树最大深度。
+
+**后序遍历（左右中）：**
+
+递归三部曲：
+
+1. 确定递归函数的参数和返回值：参数就是传入树的根节点，返回就返回这棵树的深度，所以返回值为int类型。
+
+    ```c++
+    int getdepth(treenode* node)
+    ```
+
+2. 确定终止条件：如果为空节点的话，就返回0，表示高度为0。
+
+    ```c++
+    if (node == NULL) return 0;
+    ```
+
+3. 确定单层递归的逻辑：先求它的左子树的深度，再求的右子树的深度，最后取左右深度最大的数值 再+1 （加1是因为算上当前中间节点）就是目前节点为根节点的树的深度。
+
+    ```c++
+    int leftdepth = getdepth(node->left);       // 左
+    int rightdepth = getdepth(node->right);     // 右
+    int depth = 1 + max(leftdepth, rightdepth); // 中
+    return depth;
+    ```
+
+整体代码：
+
+```c++
+class solution {
+public:
+    int getdepth(treenode* node) {
+        if (node == NULL) return 0;
+        int leftdepth = getdepth(node->left);       // 左
+        int rightdepth = getdepth(node->right);     // 右
+        int depth = 1 + max(leftdepth, rightdepth); // 中
+        return depth;
+    }
+    int maxdepth(treenode* root) {
+        return getdepth(root);
+    }
+};
+```
+
+精简后：
+
+```c++
+class solution {
+public:
+    int maxdepth(treenode* root) {
+        if (root == null) return 0;
+        return 1 + max(maxdepth(root->left), maxdepth(root->right));
+    }
+};
+```
+
+
+
+**前序遍历：**
+
+```c++
+class solution {
+public:
+    int result;
+    void getdepth(treenode* node, int depth) {
+        result = depth > result ? depth : result; // 中
+        if (node->left == NULL && node->right == NULL) return ;
+        if (node->left) { // 左
+            getdepth(node->left, depth + 1);
+        }
+        if (node->right) { // 右
+            getdepth(node->right, depth + 1);
+        }
+        return ;
+    }
+    int maxdepth(treenode* root) {
+        result = 0;
+        if (root == 0) return result;
+        getdepth(root, 1);
+        return result;
+    }
+};
+```
+
+
+
+### 2. 二叉树的最小深度
+
+[111. 二叉树的最小深度](https://leetcode.cn/problems/minimum-depth-of-binary-tree/)
+
+给定一个二叉树，找出其最小深度。
+
+最小深度是从根节点到最近叶子节点的最短路径上的节点数量。
+
+说明: 叶子节点是指没有子节点的节点。
+
+**递归：**
+
+递归三部曲：
+
+1. 确定递归函数的参数和返回值
+
+    参数为要传入的二叉树根节点，返回的是int类型的深度。
+
+    ```c++
+    int getDepth(TreeNode* node)
+    ```
+
+2. 确定终止条件
+
+    终止条件也是遇到空节点返回0，表示当前节点的高度为0。
+
+    ```c++
+    if (node == NULL) return 0;
+    ```
+
+3. 确定单层递归的逻辑
+
+    如果左子树为空，右子树不为空，说明最小深度是 1 + 右子树的深度。
+
+    反之，右子树为空，左子树不为空，最小深度是 1 + 左子树的深度。 最后如果左右子树都不为空，返回左右子树深度最小值 + 1 。
+
+    ```c++
+    int leftDepth = getDepth(node->left);           // 左
+    int rightDepth = getDepth(node->right);         // 右
+                                                    // 中
+    // 当一个左子树为空，右不为空，这时并不是最低点
+    if (node->left == NULL && node->right != NULL) { 
+        return 1 + rightDepth;
+    }   
+    // 当一个右子树为空，左不为空，这时并不是最低点
+    if (node->left != NULL && node->right == NULL) { 
+        return 1 + leftDepth;
+    }
+    int result = 1 + min(leftDepth, rightDepth);
+    return result;
+    ```
+
+    遍历的顺序为后序（左右中），可以看出：**求二叉树的最小深度和求二叉树的最大深度的差别主要在于处理左右孩子不为空的逻辑。**
+
+整体代码：
+
+```c++
+class Solution {
+public:
+    int getDepth(TreeNode* node) {
+        if (node == NULL) return 0;
+        int leftDepth = getDepth(node->left);           // 左
+        int rightDepth = getDepth(node->right);         // 右
+                                                        // 中
+        // 当一个左子树为空，右不为空，这时并不是最低点
+        if (node->left == NULL && node->right != NULL) { 
+            return 1 + rightDepth;
+        }   
+        // 当一个右子树为空，左不为空，这时并不是最低点
+        if (node->left != NULL && node->right == NULL) { 
+            return 1 + leftDepth;
+        }
+        int result = 1 + min(leftDepth, rightDepth);
+        return result;
+    }
+
+    int minDepth(TreeNode* root) {
+        return getDepth(root);
+    }
+};
+
+```
+
+```c++
+class Solution {
+public:
+    int minDepth(TreeNode* root) {
+        if (root == NULL) return 0;
+        if (root->left == NULL && root->right != NULL) {
+            return 1 + minDepth(root->right);
+        }
+        if (root->left != NULL && root->right == NULL) {
+            return 1 + minDepth(root->left);
+        }
+        return 1 + min(minDepth(root->left), minDepth(root->right));
+    }
+};
+```
+
+前序遍历：
+
+```c++
+class Solution {
+private:
+    int result;
+    void getdepth(TreeNode* node, int depth) {
+        if (node->left == NULL && node->right == NULL) {
+            result = min(depth, result);  
+            return;
+        }
+        // 中 只不过中没有处理的逻辑
+        if (node->left) { // 左
+            getdepth(node->left, depth + 1);
+        }
+        if (node->right) { // 右
+            getdepth(node->right, depth + 1);
+        }
+        return ;
+    }
+
+public:
+    int minDepth(TreeNode* root) {
+        if (root == NULL) return 0;
+        result = INT_MAX;
+        getdepth(root, 1);
+        return result;
+    }
+};
+```
+
+
+
+**迭代法：**
+
+```c++
+class Solution {
+public:
+
+    int minDepth(TreeNode* root) {
+        if (root == NULL) return 0;
+        int depth = 0;
+        queue<TreeNode*> que;
+        que.push(root);
+        while(!que.empty()) {
+            int size = que.size();
+            depth++; // 记录最小深度
+            for (int i = 0; i < size; i++) {
+                TreeNode* node = que.front();
+                que.pop();
+                if (node->left) que.push(node->left);
+                if (node->right) que.push(node->right);
+                if (!node->left && !node->right) { // 当左右孩子都为空的时候，说明是最低点的一层了，退出
+                    return depth;
+                }
+            }
+        }
+        return depth;
+    }
+};
+```
+
+
+
+## 6. 完全二叉树
+
+[222. 完全二叉树的节点个数](https://leetcode.cn/problems/balanced-binary-tree/)
+
+在完全二叉树中，除了最底层节点可能没填满外，其余每层节点数都达到最大值，并且最下面一层的节点都集中在该层最左边的若干位置。若最底层为第 h 层，则该层包含 $1 - 2^{(h-1)} $ 个节点。
+
+![完全二叉树](https://gitee.com/lxxdao/image/raw/master/algorithm/7.6完全二叉树.png)
+
+完全二叉树只有两种情况，情况一：就是满二叉树，情况二：最后一层叶子节点没有满。
+
+对于情况一，可以直接用 $2^{(树深度)} - 1$ 来计算，注意这里根节点深度为 $1$。
+
+对于情况二，分别递归左孩子，和右孩子，递归到某一深度一定会有左孩子或者右孩子为满二叉树，然后依然可以按照情况一来计算。
+
+完全二叉树（一）如图：
+
+![完全二叉树1](https://gitee.com/lxxdao/image/raw/master/algorithm/7.6.1完全二叉树1.png)
+
+完全二叉树（二）如图：
+
+![完全二叉树2](https://gitee.com/lxxdao/image/raw/master/algorithm/7.6.2完全二叉树2.png)
+
+可以看出如果整个树不是满二叉树，就递归其左右孩子，直到遇到满二叉树为止，用公式计算这个子树（满二叉树）的节点数量。
+
+判断其子树岂不是满二叉树，如果是则利用用公式计算这个子树（满二叉树）的节点数量，如果不是则继续递归，那么 在递归三部曲中，第二部：终止条件的写法应该是这样的：
+
+```c++
+if (root == nullptr) return 0; 
+// 开始根据做深度和有深度是否相同来判断该子树是不是满二叉树
+TreeNode* left = root->left;
+TreeNode* right = root->right;
+int leftDepth = 0, rightDepth = 0; // 这里初始为0是有目的的，为了下面求指数方便
+while (left) {  // 求左子树深度
+    left = left->left;
+    leftDepth++;
+}
+while (right) { // 求右子树深度
+    right = right->right;
+    rightDepth++;
+}
+if (leftDepth == rightDepth) {
+    return (2 << leftDepth) - 1; // 注意(2<<1) 相当于2^2，返回满足满二叉树的子树节点数量
+}
+```
+
+递归三部曲，第三部，单层递归的逻辑：（可以看出使用后序遍历）
+
+```c++
+int leftTreeNum = countNodes(root->left);       // 左
+int rightTreeNum = countNodes(root->right);     // 右
+int result = leftTreeNum + rightTreeNum + 1;    // 中
+return result;
+```
+
+该部分精简之后代码为：
+
+```c++
+return countNodes(root->left) + countNodes(root->right) + 1;
+```
+
+最后整体C++代码如下：
+
+```c++
+class Solution {
+public:
+    int countNodes(TreeNode* root) {
+        if (root == nullptr) return 0;
+        TreeNode* left = root->left;
+        TreeNode* right = root->right;
+        int leftDepth = 0, rightDepth = 0; // 这里初始为0是有目的的，为了下面求指数方便
+        while (left) {  // 求左子树深度
+            left = left->left;
+            leftDepth++;
+        }
+        while (right) { // 求右子树深度
+            right = right->right;
+            rightDepth++;
+        }
+        if (leftDepth == rightDepth) {
+            return (2 << leftDepth) - 1; // 注意(2<<1) 相当于2^2，所以leftDepth初始为0
+        }
+        return countNodes(root->left) + countNodes(root->right) + 1;
+    }
+};
+```
+
+- 时间复杂度：$O(log\ n *\ log\ n )$
+- 空间复杂度：$O(log\ n）$
+
+
+
+## 7. 平衡二叉树
+
+[110. 平衡二叉树](https://leetcode.cn/problems/balanced-binary-tree/)
+
+给定一个二叉树，判断它是否是高度平衡的二叉树。
+
+本题中，一棵高度平衡二叉树定义为：一个二叉树每个节点 的左右两个子树的高度差的绝对值不超过1。
+
+求深度可以从上到下去查 所以需要前序遍历（中左右），而高度只能从下到上去查，所以只能后序遍历（左右中）
+
+**递归**
+
+只要左树的高度和右树的高度相差大于 $1$ ，则说明不是平衡树，可以利用全局遍历记录。
+
+后序遍历，时间复杂度$O(n)$
+
+```c++
+class Solution {
+public:
+    bool res;
+    bool isBalanced(TreeNode* root) {
+        res = true;
+        dfs(root);
+        return res;
+    }
+    int dfs(TreeNode* root) {
+        if (!root) return 0;
+        int left = dfs(root->left);
+        int right = dfs(root->right);
+        if (abs(left - right) > 1) res = false;
+        return max(left, right) + 1;
+    }
+};
+```
+
+求左右子树高度，判断差值，在递归左右子树。
+
+时间复杂度$O(n)$ 极端情况下每个节点遍历两遍 $O(2n)$
+
+```c++
+class Solution {
+public:
+    bool isBalanced(TreeNode* root) {
+        if (!root) return true;
+        int left = treeDepth(root->left);
+        int right = treeDepth(root->right);
+        if (abs(left - right) > 1) return false;
+        
+        return isBalanced(root->left) && isBalanced(root->right);
+    }
+    
+    int treeDepth(TreeNode* root) {
+        if (!root) return 0;
+        return max(treeDepth(root->left), treeDepth(root->right)) + 1;
+    }
+};
+```
+
+
+
+## 8. 二叉树的所有路径
+
+[257. 二叉树的所有路径](https://leetcode.cn/problems/binary-tree-paths/)
+
+给定一个二叉树，返回所有从根节点到叶子节点的路径。
+
+**递归回溯**
+
+1. 从根结点开始递归遍历，每个结点仅遍历一次，遍历时需要记录当前路径。
+2. 若发现当前结点没有左右儿子，则当前结点为叶子结点，将当前路径加入答案。
+
+时间复杂度
+
+- 每个结点仅遍历一次，遍历时维护路径所需要的平均时间也和遍历时间成正比。
+- 最坏情况下，每条路径需要 $O(n)$ 的时间存放，共有 $O(n)$ 个叶子节点，故总时间复杂度为 $O(n^2)$
+
+```C++
+class Solution {
+public:
+    vector<string> ans;
+    vector<int> path;
+    vector<string> binaryTreePaths(TreeNode* root) {
+        if (root) dfs(root);
+        return ans;
+    }
+
+    void dfs(TreeNode* root) {
+        path.push_back(root->val);
+        if (!root->left && !root->right) {
+            string line = to_string(path[0]);
+            for (int i = 1; i < path.size(); i++) {
+                line += "->" + to_string(path[i]);
+            }
+            ans.push_back(line);
+        } else {
+            if (root->left) dfs(root->left);
+            if (root->right) dfs(root->right);
+        }
+        path.pop_back();
+    }
+};
+```
+
+
+
+## 9. 重建二叉树
+
+![重建二叉树](https://gitee.com/lxxdao/image/raw/master/algorithm/9.1.1重建二叉树.jpg)
+
+前序遍历：`[3,9,20,15,7]`
+
+中序遍历：`[9,3,15,20,7]`
+
+后序遍历：`[9,15,7,20,3]`
+
+可以看出根节点分别在前序遍历的最左边和后序遍历的最右边
+
+可以通过哈希表查找根节点在中序遍历的位置，来判断左右子树的数量
+
+### 1. 从前序与中序遍历序列构造二叉树
+
+#### [105. 从前序与中序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/)
+
+给定两个整数数组 preorder 和 inorder ，其中 preorder 是二叉树的前序遍历， inorder 是同一棵树的中序遍历，请构造二叉树并返回其根节点。
+
+**递归**
+递归建立整棵二叉树：先递归创建左右子树，然后创建根节点，并让指针指向两棵子树。
+具体步骤如下：
+1. 先利用前序遍历找根节点：前序遍历的第一个数，就是根节点的值；
+2. 在中序遍历中找到根节点的位置 k，则 k 左边是左子树的中序遍历，右边是右子树的中序遍历；
+3. 假设左子树的中序遍历的长度是 l，则在前序遍历中，根节点后面的 l 个数，是左子树的前序遍历，剩下的数是右子树的前序遍历；
+4. 有了左右子树的前序遍历和中序遍历，我们可以先递归创建出左右子树，然后再创建根节点；
+
+时间复杂度分析：我们在初始化时，用哈希表`(unordered_map<int,int>)`记录每个值在中序遍历中的位置，这样我们在递归到每个节点时，在中序遍历中查找根节点位置的操作，只需要 $O(1)$ 的时间。此时，创建每个节点需要的时间是 $O(1)$，所以总时间复杂度是 $O(n)$。
+
+```C++
+class Solution {
+public:
+    unordered_map<int, int> pos;
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        int n = preorder.size();
+        for (int i = 0; i < n; i++) pos[inorder[i]] = i;
+        return dfs(preorder, inorder, 0, n - 1, 0, n - 1);
+    }
+
+    TreeNode* dfs(vector<int>& preorder, vector<int>& inorder, int pl, int pr, int il, int ir) {
+        if (pl > pr) return nullptr;
+        auto root = new TreeNode(preorder[pl]);
+        int k = pos[preorder[pl]];  // k 表示当前根结点在所给的中序遍历范围区间内的位置（分割左右子树）
+        // 前序遍历根节点在第一个
+
+        // k是位置 k-il 是左子树的长度
+        auto left = dfs(preorder, inorder, pl + 1, pl + 1 + k - il - 1, il, k - 1);
+        // 左子树
+        // 前序 左节点为根节点的下一个，右节点为 pl + 1 + k -il - 1 = pl + k - il
+        // 中序 左节点为原来的 il，右节点为根节点的前一个 k - 1
+        
+        auto right = dfs(preorder, inorder, pl + k - il + 1, pr, k + 1, ir);
+        // 右子树
+        // 前序 左节点为左树右节点的下一个 pl + k - il + 1，右节点为原来的pr
+        // 中序 左节点为 k + 1,右节点为原来的 ir
+        root->left = left, root->right = right;
+        return root;
+    }
+};
+```
+
+
+
+### 2. 从中序与后序遍历序列构造二叉树
+
+#### [106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+
+给定两个整数数组 inorder 和 postorder ，其中 inorder 是二叉树的中序遍历， postorder 是同一棵树的后序遍历，请你构造并返回这颗 二叉树 。
+
+**递归**
+
+递归建立整棵二叉树：先递归创建左右子树，然后创建根节点，并让指针指向两棵子树。
+具体步骤如下：
+1. 先利用后序遍历找根节点：后序遍历的最后一个数，就是根节点的值；
+2. 在中序遍历中找到根节点的位置 kk，则 kk 左边是左子树的中序遍历，右边是右子树的中序遍历；
+3. 假设左子树的中序遍历的长度是 ll，则在后序遍历中，前 ll 个数就是左子树的后序遍历，接下来的数除了最后一个，就是右子树的后序遍历；
+4. 有了左右子树的后序遍历和中序遍历，我们可以先递归创建出左右子树，然后再创建根节点；
+
+时间复杂度分析：我们在初始化时，用哈希表`(unordered_map<int,int>)`记录每个值在中序遍历中的位置，这样我们在递归到每个节点时，在中序遍历中查找根节点位置的操作，只需要 $O(1)$ 的时间。此时，创建每个节点需要的时间是 $O(1)$，所以总时间复杂度是 $O(n)$。
+
+```c++
+class Solution {
+public:
+    unordered_map<int,int> hash;
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+        int n = inorder.size();
+        for (int i = 0; i < n; i ++ )
+            hash[inorder[i]] = i;
+        return dfs(postorder, inorder, 0, n - 1, 0, n - 1);
+    }
+    TreeNode* dfs(vector<int>& postorder, vector<int>& inorder, int pl, int pr, int il, int ir) {
+        if (pl > pr) return nullptr;
+        auto root = new TreeNode(postorder[pr]);
+        int k = hash[postorder[pr]]; // k 表示当前根结点在所给的中序遍历范围区间内的位置（分割左右子树）
+        // 后序遍历根节点在最后一个
+        
+        // k是位置 k-il 是左子树的长度
+        auto left = dfs(postorder, inorder, pl, pl + k - il - 1, il, k - 1);
+        // 左树
+        // 后序 左节点为原来的pl，右节点为 pl + k - il - 1
+        // 中序 左节点为原来的 il，右节点为根节点的前一个 k - 1 
+        
+        auto right = dfs(postorder, inorder, pl + k -il, pr - 1, k + 1, ir);
+        // 右子树
+        // 后序 左节点为左树右节点的下一个 pl + k - il，右节点为根节点前一个pr - 1
+        // 中序 左节点为 k + 1,右节点为原来的 ir
+
+        root->left = left, root->right = right;
+        return root;
     }
 };
 ```
