@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 算法
 
 1. 上课 学习思想 
@@ -8135,7 +8127,7 @@ public:
 
 ### 2. 从中序与后序遍历序列构造二叉树
 
-#### [106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
+[106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/)
 
 给定两个整数数组 inorder 和 postorder ，其中 inorder 是二叉树的中序遍历， postorder 是同一棵树的后序遍历，请你构造并返回这颗 二叉树 。
 
@@ -8183,3 +8175,816 @@ public:
 };
 ```
 
+
+
+## 10. 二叉搜索树
+
+[二叉搜索树定义](#二叉搜索树)
+
+二叉搜索树重要的特性：中序遍历是递增的
+
+故这类题目先考虑中序遍历。
+
+### 1. 二叉搜索树中的搜索
+
+#### [700. 二叉搜索树中的搜索](https://leetcode.cn/problems/search-in-a-binary-search-tree/)
+
+给定二叉搜索树（BST）的根节点和一个值。 你需要在BST中找到节点值等于给定值的节点。 返回以该节点为根的子树。 如果节点不存在，则返回 NULL。
+
+**递归**
+
+递归三部曲：
+
+1. 确定递归函数的参数和返回值
+
+    递归函数的参数传入的就是根节点和要搜索的数值，返回的就是以这个搜索数值所在的节点。
+
+    ```c++
+    TreeNode* searchBST(TreeNode* root, int val)
+    ```
+
+2. 确定终止条件
+
+    如果root为空，返回空，或者找到这个数值了，就返回root节点。
+
+    ```c++
+    if (root == NULL || root->val == val) return root;
+    ```
+
+3. 确定单层递归的逻辑
+
+    因为二叉搜索树的节点是有序的，所以可以有方向的去搜索。
+
+    如果root->val > val，搜索左子树，如果root->val < val，就搜索右子树，最后如果都没有搜索到，就返回NULL。
+
+    ```c++
+    if (root->val > val) return searchBST(root->left, val);
+    if (root->val < val) return searchBST(root->right, val);
+    return NULL;
+    ```
+
+```C++
+class Solution {
+public:
+    TreeNode* searchBST(TreeNode* root, int val) {
+        if (!root) return nullptr;
+        if (root->val == val) return root;
+        if (root->val > val) return searchBST(root->left, val);
+        if (root->val < val) return searchBST(root->right, val); 
+        return nullptr;
+    }
+};
+```
+
+**迭代**
+
+利用二叉搜索树的有序搜索
+
+```c++
+class Solution {
+public:
+    TreeNode* searchBST(TreeNode* root, int val) {
+        while (root != NULL) {
+            if (root->val > val) root = root->left;
+            else if (root->val < val) root = root->right;
+            else return root;
+        }
+        return NULL;
+    }
+};
+```
+
+
+
+### 2. 验证二叉搜索树
+
+[98. 验证二叉搜索树](https://leetcode.cn/problems/validate-binary-search-tree/)
+
+给定一个二叉树，判断其是否是一个有效的二叉搜索树。
+
+假设一个二叉搜索树具有如下特征：
+
+- 节点的左子树只包含小于当前节点的数。
+- 节点的右子树只包含大于当前节点的数。
+- 所有左子树和右子树自身必须也是二叉搜索树。
+
+中序遍历下，输出的二叉搜索树节点的数值是有序序列。
+
+有了这个特性，**验证二叉搜索树，就相当于变成了判断一个序列是不是递增的了。**
+
+**递归**
+
+递归三部曲：
+
+1. 确定递归函数，返回值以及参数
+
+    要定义一个longlong的全局变量，用来比较遍历的节点是否有序。寻找一个不符合条件的节点，如果没有找到这个节点就遍历了整个树，如果找到不符合的节点了，立刻返回。
+
+    ```c++
+    long long maxVal = LONG_MIN; // 因为后台测试数据中有int最小值
+    bool isValidBST(TreeNode* root)
+    ```
+
+2. 确定终止条件
+
+    如果是空节点，二叉搜索树也可以为空！
+
+    ```c++
+    if (root == NULL) return true;
+    ```
+
+3. 确定单层递归的逻辑
+
+    中序遍历，一直更新maxVal，一旦发现maxVal >= root->val，就返回false，注意元素相同时候也要返回false。
+
+    ```cpp
+    bool left = isValidBST(root->left);         // 左
+    
+    // 中序遍历，验证遍历的元素是不是从小到大
+    if (maxVal < root->val) maxVal = root->val; // 中
+    else return false;
+    
+    bool right = isValidBST(root->right);       // 右
+    return left && right;
+    ```
+
+```cpp
+class Solution {
+public:
+    long long maxVal = LONG_MIN; // 因为后台测试数据中有int最小值
+    bool isValidBST(TreeNode* root) {
+        if (root == NULL) return true;
+
+        bool left = isValidBST(root->left);
+        // 中序遍历，验证遍历的元素是不是从小到大
+        if (maxVal < root->val) maxVal = root->val;
+        else return false;
+        bool right = isValidBST(root->right);
+
+        return left && right;
+    }
+};
+```
+
+**迭代**
+
+```c++
+class Solution {
+public:
+    bool isValidBST(TreeNode* root) {
+        stack<TreeNode*> st;
+        TreeNode* cur = root;
+        TreeNode* pre = NULL; // 记录前一个节点
+        while (cur != NULL || !st.empty()) {
+            if (cur != NULL) {
+                st.push(cur);
+                cur = cur->left;                // 左
+            } else {
+                cur = st.top();                 // 中
+                st.pop();
+                if (pre != NULL && cur->val <= pre->val)
+                return false;
+                pre = cur; //保存前一个访问的结点
+
+                cur = cur->right;               // 右
+            }
+        }
+        return true;
+    }
+};
+```
+
+
+
+### 3. 二叉搜索树的最小绝对差
+
+[530. 二叉搜索树的最小绝对差](https://leetcode.cn/problems/minimum-absolute-difference-in-bst/)
+
+给你一棵所有节点为非负值的二叉搜索树，请你计算树中任意两节点的差的绝对值的最小值。
+
+**递归**
+
+```C++
+class Solution {
+public:
+    int res = INT_MAX, last;
+    bool is_first = true;
+    int getMinimumDifference(TreeNode* root) {
+        dfs(root);
+        return res;
+    }
+
+    void dfs(TreeNode* root) {
+        if (!root) return;
+        dfs(root->left);
+
+        if (is_first) is_first = false;			// 最左的节点为第一个节点
+        else res = min(res, root->val - last);
+        last = root->val;
+        dfs(root->right);
+    }
+};
+```
+
+
+
+### 4. 二叉搜索树中的众数
+
+给定一个有相同值的二叉搜索树（BST），找出 BST 中的所有众数（出现频率最高的元素）。
+
+假定 BST 有如下定义：
+
+- 结点左子树中所含结点的值小于等于当前结点的值
+- 结点右子树中所含结点的值大于等于当前结点的值
+- 左子树和右子树都是二叉搜索树
+
+
+
+**递归中序遍历**
+
+1. 根据二叉搜索树的性质，可以采用中序遍历的方式遍历整棵树，这样就可以得到一个单调递增的序列，相同的元素会被一起遍历到。
+2. 这样可以在遍历过程中统计众数。
+
+**时间复杂度**
+
+- 每个结点最多遍历一次，故时间复杂度为 $O(n)$
+
+**空间复杂度**
+
+- 除了记录答案的数组和递归使用的系统栈，其余只使用了常数内存空间$O(1)$
+
+```C++
+class Solution {
+public:
+    int maxc = 0, curc = 0, last;	// maxc最大出现次数， cutc当前数字出现次数， last上一节点值
+    vector<int> res;
+    vector<int> findMode(TreeNode* root) {
+        dfs(root);
+        return res;
+    }
+
+    void dfs(TreeNode* root) {
+        if (!root) return;
+        dfs(root->left);
+        if (!curc || root->val == last) {	// 如果次数为0，是第一个元素或与上一元素相等
+            curc++;							// 次数+1
+            last = root->val;				// 主要是给第一个元素更新
+        } else {
+            last = root->val;
+            curc = 1;
+        }
+        if (curc > maxc) {
+            res = {last};
+            maxc = curc;
+        } else if (curc == maxc) {
+            res.push_back(last);
+        }
+        dfs(root->right);
+    }
+};
+```
+
+判断第一个元素写法
+
+```c++
+class Solution {
+public:
+    int maxc = 0, curc = 0, last;
+    bool is_first;
+    vector<int> res;
+    vector<int> findMode(TreeNode* root) {
+        dfs(root);
+        return res;
+    }
+
+    void dfs(TreeNode* root) {
+        if (!root) return;
+        dfs(root->left);
+        if (is_first) {
+            curc = 1;
+        } else {
+            if (root->val == last) curc ++;
+            else curc = 1;
+        }
+        last = root->val;
+
+        if (curc > maxc) {
+            res = {last};
+            maxc = curc;
+        } else if (curc == maxc) {
+            res.push_back(last);
+        }
+        dfs(root->right);
+    }
+};
+```
+
+
+
+### 5. 二叉树的最近公共祖先
+
+[236. 二叉树的最近公共祖先](https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree/)
+
+给定一个二叉树, 找到该树中两个指定节点的最近公共祖先。
+
+**递归**
+
+递归三部曲：
+
+1. 确定递归函数返回值以及参数
+
+    需要递归函数返回值，来告诉我们是否找到节点q或者p，那么返回值为bool类型就可以了。
+
+    但我们还要返回最近公共节点，可以利用上题目中返回值是TreeNode * ，那么如果遇到p或者q，就把q或者p返回，返回值不为空，就说明找到了q或者p。
+
+    ```c++
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q)
+    ```
+
+2. 确定终止条件
+
+    如果找到了 节点p或者q，或者遇到空节点，就返回。
+
+    ```c++
+    if (root == q || root == p || root == NULL) return root;
+    ```
+
+3. 确定单层递归逻辑
+
+    如果递归函数有返回值，如何区分要搜索一条边，还是搜索整个树呢？
+
+    搜索一条边的写法：
+
+    ```c++
+    if (递归函数(root->left)) return ;
+    
+    if (递归函数(root->right)) return ;
+    ```
+
+    搜索整个树写法：
+
+    ```c++
+    left = 递归函数(root->left);
+    right = 递归函数(root->right);
+    left与right的逻辑处理;
+    ```
+
+    **在递归函数有返回值的情况下：如果要搜索一条边，递归函数返回值不为空的时候，立刻返回，如果搜索整个树，直接用一个变量left、right接住返回值，这个left、right后序还有逻辑处理的需要，也就是后序遍历中处理中间节点的逻辑（也是回溯）**
+
+    ```c++
+    if (left == NULL && right != NULL) return right;
+    else if (left != NULL && right == NULL) return left;
+    else  { //  (left == NULL && right == NULL)
+        return NULL;
+    }
+    ```
+
+```c++
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if (!root) return NULL;
+        if (root == p || root == q) return root;
+        auto left = lowestCommonAncestor(root->left, p, q);
+        auto right = lowestCommonAncestor(root->right, p, q);
+        if (left && right) return root;
+        if (left) return left;
+        return right;
+    }
+};
+```
+
+**总结：**
+
+1. 求最小公共祖先，需要从底向上遍历，那么二叉树，只能通过后序遍历（即：回溯）实现从低向上的遍历方式。
+2. 在回溯的过程中，必然要遍历整棵二叉树，即使已经找到结果了，依然要把其他节点遍历完，因为要使用递归函数的返回值（也就是代码中的left和right）做逻辑判断。
+3. 要理解如果返回值left为空，right不为空为什么要返回right，为什么可以用返回right传给上一层结果。
+
+
+
+### 6. 二叉搜索树的最近公共祖先
+
+给定一个二叉搜索树, 找到该树中两个指定节点的最近公共祖先。
+
+二叉搜索树有序，从上到下遍历的时候，cur节点是数值在[p, q]区间中则说明该节点cur就是最近公共祖先了。
+
+**递归**
+
+```C++
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if (!root) return root;
+        if (root->val > p->val && root->val > q->val) {
+            return lowestCommonAncestor(root->left, p, q);
+        } else if (root->val < p->val && root->val < q->val) {
+            return lowestCommonAncestor(root->right, p, q);
+        } else return root;
+    }
+};
+```
+
+**迭代**
+
+```cpp
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        while(root) {
+            if (root->val > p->val && root->val > q->val) {
+                root = root->left;
+            } else if (root->val < p->val && root->val < q->val) {
+                root = root->right;
+            } else return root;
+        }
+        return NULL;
+    }
+};
+```
+
+
+
+### 7. 二叉搜索树中的插入操作
+
+[701. 二叉搜索树中的插入操作](https://leetcode.cn/problems/insert-into-a-binary-search-tree/)
+
+给定二叉搜索树（BST）的根节点和要插入树中的值，将值插入二叉搜索树。 返回插入后二叉搜索树的根节点。 输入数据保证，新值和原始二叉搜索树中的任意节点值都不同。
+
+注意，可能存在多种有效的插入方式，只要树在插入后仍保持为二叉搜索树即可。 你可以返回任意有效的结果。
+
+思路：只要遍历二叉搜索树，找到空节点 插入元素就可以了
+
+**递归**
+
+递归三部曲：
+
+1. 确定递归函数参数以及返回值
+
+    参数就是根节点指针，以及要插入元素，返回类型为节点类型TreeNode * 。
+
+    ```c++
+    TreeNode* insertIntoBST(TreeNode* root, int val)
+    ```
+
+2. 确定终止条件
+
+    终止条件就是找到遍历的节点为null的时候，就是要插入节点的位置了，并把插入的节点返回。
+
+    ```c++
+    if (!root) return new TreeNode(val);
+    ```
+
+3. 确定单层递归的逻辑
+
+    二叉搜索树有方向了，可以根据插入元素的数值，决定递归方向。
+
+    ```c++
+    if (root->val > val) root->left = insertIntoBST(root->left, val);
+    if (root->val < val) root->right = insertIntoBST(root->right, val);
+    return root;
+    ```
+
+```c++
+class Solution {
+public:
+    TreeNode* insertIntoBST(TreeNode* root, int val) {
+        if (!root) return new TreeNode(val);
+        if (root->val > val) root->left = insertIntoBST(root->left, val);
+        if (root->val < val) root->right = insertIntoBST(root->right, val);
+        return root;
+    }
+};
+```
+
+
+
+### 8. 删除二叉搜索树中的节点
+
+给定一个二叉搜索树的根节点 root 和一个值 key，删除二叉搜索树中的 key 对应的节点，并保证二叉搜索树的性质不变。返回二叉搜索树（有可能被更新）的根节点的引用。
+
+一般来说，删除节点可分为两个步骤：
+
+首先找到需要删除的节点； 如果找到了，删除它。 说明： 要求算法时间复杂度为 $O(h)$，h 为树的高度。
+
+#### **递归**
+
+递归三部曲：
+
+1. 确定递归函数参数以及返回值
+
+    ```c++
+    TreeNode* deleteNode(TreeNode* root, int key)
+    ```
+
+2. 确定终止条件
+
+    遇到空返回，其实这也说明没找到删除的节点，遍历到空节点直接返回了
+
+    ```c++
+    if (root == nullptr) return root;
+    ```
+
+3. 确定单层递归的逻辑
+
+    二叉搜索树中删除节点所有的情况，共有五种：
+
+    - 第一种情况：没找到删除的节点，遍历到空节点直接返回了
+    - 找到删除的节点
+        - 第二种情况：左右孩子都为空（叶子节点），直接删除节点， 返回NULL为根节点
+        - 第三种情况：删除节点的左孩子为空，右孩子不为空，删除节点，右孩子补位，返回右孩子为根节点
+        - 第四种情况：删除节点的右孩子为空，左孩子不为空，删除节点，左孩子补位，返回左孩子为根节点
+        - 第五种情况：左右孩子节点都不为空，则将删除节点的左子树头结点（左孩子）放到删除节点的右子树的最左面节点的左孩子上，返回删除节点右孩子为新的根节点。
+
+    ```c++
+    if (root->val == key) {
+        
+        // 第二种情况：左右孩子都为空（叶子节点），直接删除节点， 返回NULL为根节点
+        if (!root->left && !root->right) return nullptr;
+        
+        // 第三种情况：其左孩子为空，右孩子不为空，删除节点，右孩子补位 ，返回右孩子为根节点
+        else if (!root->left) return root->right;
+        
+        // 第四种情况：其右孩子为空，左孩子不为空，删除节点，左孩子补位，返回左孩子为根节点
+        else if (!root->right) return root->left;
+        
+        // 第五种情况：左右孩子节点都不为空，则将删除节点的左子树放到删除节点的右子树的最左面节点的左孩子的位置
+        // 并返回删除节点右孩子为新的根节点。
+        else {
+            TreeNode* cur = root->right; // 找右子树最左面的节点
+            while(cur->left != nullptr) {
+                cur = cur->left;
+            }
+            cur->left = root->left; // 把要删除的节点（root）左子树放在cur的左孩子的位置
+            TreeNode* tmp = root;   // 把root节点保存一下，下面来删除
+            root = root->right;     // 返回旧root的右孩子作为新root
+            delete tmp;             // 释放节点内存（这里不写也可以，但C++最好手动释放一下吧）
+            return root;
+        }
+    }
+    ```
+
+    这里相当于把新的节点返回给上一层，上一层就要用 root->left 或者 root->right接住，代码如下：
+
+    ```
+    if (root->val > key) root->left = deleteNode(root->left, key);
+    if (root->val < key) root->right = deleteNode(root->right, key);
+    return root;
+    ```
+
+```C++
+class Solution {
+public:
+    TreeNode* deleteNode(TreeNode* root, int key) {
+        if (!root) return root;
+        if (key == root->val) {
+            if (!root->left && !root->right) return nullptr; 
+            else if (!root->left) return root->right;
+            else if (!root->right) return root->left;
+            else {
+                TreeNode* cur = root->right; // 找右子树最左面的节点
+                while(cur->left != nullptr) {
+                    cur = cur->left;
+                }
+                cur->left = root->left;
+                root = root->right;
+                return root;
+            }
+        }
+        if (root->val > key) root->left = deleteNode(root->left, key);
+        if (root->val < key) root->right = deleteNode(root->right, key);
+        return root;
+    }
+};
+```
+
+
+
+#### 普通二叉树的删除方式
+
+普通二叉树的删除方式（没有使用搜索树的特性，遍历整棵树），用交换值的操作来删除目标节点。
+
+代码中目标节点（要删除的节点）被操作了两次：
+
+- 第一次是和目标节点的右子树最左面节点交换。
+- 第二次直接被NULL覆盖了。
+
+```c++
+class Solution {
+public:
+    TreeNode* deleteNode(TreeNode* root, int key) {
+        if (!root) return root;
+        if (root->val == key) {
+            if (!root->right) { // 这里第二次操作目标值：最终删除的作用
+                return root->left;
+            }
+            TreeNode *cur = root->right;
+            while (cur->left) {
+                cur = cur->left;
+            }
+            swap(root->val, cur->val); // 这里第一次操作目标值：交换目标值其右子树最左面节点。
+        }
+        root->left = deleteNode(root->left, key);
+        root->right = deleteNode(root->right, key);
+        return root;
+    }
+};
+```
+
+
+
+### 9. 修剪二叉搜索树
+
+#### [669. 修剪二叉搜索树](https://leetcode.cn/problems/trim-a-binary-search-tree/)
+
+给定一个二叉搜索树，同时给定最小边界L 和最大边界 R。通过修剪二叉搜索树，使得所有节点的值在[L, R]中 (R>=L) 。你可能需要改变树的根节点，所以结果应当返回修剪好的二叉搜索树的新的根节点。
+
+**递归**
+
+删除某一节点不能直接返回空指针，需要把其右子树接到删除节点的父节点上。
+
+递归三部曲：
+
+1. 确定递归函数的参数以及返回值
+
+    通过递归函数的返回值来移除节点。
+
+    ```c++
+    TreeNode* trimBST(TreeNode* root, int low, int high)
+    ```
+
+2. 确定终止条件
+
+    修剪的操作并不是在终止条件上进行的，所以就是遇到空节点返回就可以了。
+
+    ```c++
+    if (root == nullptr ) return nullptr;
+    ```
+
+3. 确定单层递归的逻辑
+
+    如果root（当前节点）的元素小于low的数值，那么应该递归右子树，并返回右子树符合条件的头结点。
+
+    如果root(当前节点)的元素大于high的，那么应该递归左子树，并返回左子树符合条件的头结点。
+
+    接下来要将下一层处理完左子树的结果赋给root->left，处理完右子树的结果赋给root->right。
+
+    最后返回root节点。
+
+    ```c++
+    if (root->val < low) return trimBST(root->right, low, high);
+    if (root->val > high) return trimBST(root->left, low, high);
+    root->left = trimBST(root->left, low, high);
+    root->right = trimBST(root->right, low, high);
+    return root;
+    ```
+
+```c++
+class Solution {
+public:
+    TreeNode* trimBST(TreeNode* root, int low, int high) {
+        if (root == nullptr) return nullptr;
+        if (root->val < low) return trimBST(root->right, low, high);
+        if (root->val > high) return trimBST(root->left, low, high);
+        root->left = trimBST(root->left, low, high);
+        root->right = trimBST(root->right, low, high);
+        return root;
+    }
+};
+```
+
+
+
+### 10. 将有序数组转换为二叉搜索树
+
+#### [108. 将有序数组转换为二叉搜索树](https://leetcode.cn/problems/convert-sorted-array-to-binary-search-tree/)
+
+**本质就是寻找分割点，分割点作为当前节点，然后递归左区间和右区间**。
+
+分割点就是数组中间位置的节点。
+
+如果要分割的数组长度为偶数的时候，取哪一个都可以，只不过构成了不同的平衡二叉搜索树。
+
+**递归**
+
+递归三部曲：
+
+1. 确定递归函数返回值及其参数
+
+    构造二叉树，依然用递归函数的返回值来构造中节点的左右孩子。
+
+    再来看参数，首先是传入数组，然后就是左下标left和右下标right。
+
+    **在不断分割的过程中，也会坚持左闭右闭的区间**
+
+    ```c++
+    // 左闭右闭区间[left, right]
+    TreeNode* traversal(vector<int>& nums, int left, int right)
+    ```
+
+2. 确定递归终止条件
+
+    这里定义的是左闭右闭的区间，所以当区间 left > right的时候，就是空节点了。
+
+    ```
+    if (left > right) return nullptr;
+    ```
+
+3. 确定单层递归的逻辑
+
+    首先取数组中间元素的位置，取了中间位置，就开始以中间位置的元素构造节点，代码：`TreeNode* root = new TreeNode(nums[mid]);`
+
+    接着划分区间，root的左孩子接住下一层左区间的构造节点，右孩子接住下一层右区间构造的节点；
+
+    最后返回root节点。
+
+    ```c++
+    int mid = left + ((right - left) / 2);
+    TreeNode* root = new TreeNode(nums[mid]);
+    root->left = traversal(nums, left, mid - 1);
+    root->right = traversal(nums, mid + 1, right);
+    return root;
+    ```
+
+```c++
+class Solution {
+private:
+    TreeNode* traversal(vector<int>& nums, int left, int right) {
+        if (left > right) return nullptr;
+        int mid = left + ((right - left) / 2);
+        TreeNode* root = new TreeNode(nums[mid]);
+        root->left = traversal(nums, left, mid - 1);
+        root->right = traversal(nums, mid + 1, right);
+        return root;
+    }
+public:
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        TreeNode* root = traversal(nums, 0, nums.size() - 1);
+        return root;
+    }
+};
+```
+
+
+
+### 11. 把二叉搜索树转换为累加树
+
+#### [538. 把二叉搜索树转换为累加树](https://leetcode.cn/problems/convert-bst-to-greater-tree/)
+
+给出二叉 搜索 树的根节点，该树的节点值各不相同，请你将其转换为累加树（Greater Sum Tree），使每个节点 node 的新值等于原树中大于或等于 node.val 的值之和。
+
+提醒一下，二叉搜索树满足下列约束条件：
+
+节点的左子树仅包含键 小于 节点键的节点。 节点的右子树仅包含键 大于 节点键的节点。 左右子树也必须是二叉搜索树。
+
+**思路：累加的顺序是右中左，所以我们需要反中序遍历这个二叉树，然后顺序累加就可以了**。
+
+**递归**
+
+递归三部曲：
+
+1. 递归函数参数以及返回值
+
+    不需要返回值，只需要遍历整棵树，同时定义全局变量sum，记录累加和
+
+    ```c++
+    int sum; // 记录前面节点的累加和
+    void traversal(TreeNode* root)
+    ```
+
+2. 确定终止条件
+
+    遇空就终止。
+
+    ```c++
+    if (!root) return;
+    ```
+
+3. 确定单层递归的逻辑
+
+    注意**要右中左来遍历二叉树**， 中节点的处理逻辑就是先更新累加和，再更新节点数值。
+
+    ```c++
+    traversal(root->right);	// 右
+    sum += root->val;		// 中
+    root->val = sum;
+    traversal(root->left);  // 左
+    ```
+
+```c++
+class Solution {
+public:
+    int sum;
+    TreeNode* convertBST(TreeNode* root) {
+        sum = 0;
+        traversal(root);
+        return root;
+    }
+    void traversal(TreeNode* root) {
+        if (!root) return;
+        traversal(root->right);
+        sum += root->val;
+        root->val = sum;
+        traversal(root->left); 
+    }
+};
+```
