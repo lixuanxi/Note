@@ -1262,7 +1262,7 @@ if (tt > 0){
 
 ### **单调栈**
 
-常见模型：找出每个数左边离它最近的比它大/小的数
+常见模型：找出每个数左边离它最近的比它小的数
 
 算法原理：	
 用单调递增栈，当该元素可以入栈的时候，栈顶元素就是它左侧第一个比它小的元素。
@@ -1288,7 +1288,7 @@ for (int i = 0; i < n; i++) {
     int x, cin >> x;
     while (!stk.empty() && stk.top() >= x) stk.pop();
     if (!stk.empty()) {
-        cout << stk[tt] << ' ';
+        cout << stk.top() << ' ';
     } else {
         cout << -1 << ' ';
     }
@@ -1585,7 +1585,7 @@ public:
     }
     
     int get(int x) {
-        return (x + q.size()) % q.size();	// 先加后模是为了防止复数
+        return (x + q.size()) % q.size();	// 先加后模是为了防止负数
     }
 
     bool insertFront(int value) {		// 插对头
@@ -1712,7 +1712,7 @@ p: 	"ababacd"   // 和p中下标为[1~3]的"aba"相同,此时可以滑动j-k位,
               |        	// 滑动j-k位后发现main[5]和patterb[3]不相
               ∨		   //需要再次滑动
          "ababaeaba"   
-              "ababacd"	// 滑动过程和上次类似。
+               "ababacd"	// 滑动过程和上次类似。
 ```
 
 
@@ -1740,9 +1740,10 @@ p: 	"ababacd"   // 和p中下标为[1~3]的"aba"相同,此时可以滑动j-k位,
 **代码如下：**
 
 ```c++
-for(int i = 1, j = 0; i <= n; i++) {
+for(int i = 1, j = 0; i <= n; i++) {	
+     // j !=0 判断是否退无可退 s[i]!=p[j+1]判断是否能往下走
     while(j && s[i] != p[j+1]) j = ne[j];
-    //如果j有对应p串的元素， 且s[i] != p[j+1],则失配,移动p串
+    //如果j有对应p串的元素， 且s[i] != p[j+1],不能往下走则失配,移动p串往前退
     //用while是由于移动后可能仍然失配，所以要继续移动直到匹配或整个p串移到后面(j = 0)
     if(s[i] == p[j+1]) j++;
     //当前元素匹配，j移向p串下一位
@@ -1786,16 +1787,16 @@ s = ' ' + s;
 p = ' ' + p;   //处理字符串让其下标从1开始
 
 //求next的过程 
-for (int i = 2, j = 0; i <= p.size(); i ++ ) {
+for (int i = 2, j = 0; i <= m; i ++ ) {
     while (j && p[i] != p[j + 1]) j = ne[j];
     if (p[i] == p[j + 1]) j ++ ;
     ne[i] = j;
 }
 
 // 匹配
-for (int i = 1, j = 0; i <= s.size(); i ++ ) {
+for (int i = 1, j = 0; i <= n; i ++ ) {
     while (j && s[i] != p[j + 1]) j = ne[j];
-    if (s[i] == p[j + 1]) j ++ ;
+    if (s[i] == p[j + 1]) j ++;
     if (j == m){
         j = ne[j];
         // 匹配成功后的逻辑
@@ -8988,3 +8989,284 @@ public:
     }
 };
 ```
+
+
+
+# 第八章 链表
+
+## 1. 理论基础
+
+链表是一种通过指针串联在一起的线性结构，每一个节点由两部分组成，一个是数据域一个是指针域（存放指向下一个节点的指针），最后一个节点的指针域指向null（空指针的意思）。
+
+链接的入口节点称为链表的头结点也就是head。
+
+如图所示：
+
+![链表](https://gitee.com/lxxdao/image/raw/master/algorithm/8.0.1链表.png)**单链表**
+
+刚刚说的就是单链表。
+
+**双链表**
+
+单链表中的指针域只能指向节点的下一个节点。
+
+双链表：每一个节点有两个指针域，一个指向下一个节点，一个指向上一个节点。
+
+双链表 既可以向前查询也可以向后查询。
+
+如图所示：
+
+![双链表](https://gitee.com/lxxdao/image/raw/master/algorithm/8.0.2双链表.png)
+
+**循环链表**
+
+循环链表，顾名思义，就是链表首尾相连。
+
+循环链表可以用来解决约瑟夫环问题。
+
+![循环链表](https://gitee.com/lxxdao/image/raw/master/algorithm/8.0.3循环链表.png)
+
+**链表定义**
+
+```c++
+// 单链表
+struct ListNode {
+    int val;  // 节点上存储的元素
+    ListNode *next;  // 指向下一个节点的指针
+    ListNode(int x) : val(x), next(NULL) {}  // 节点的构造函数
+};
+```
+
+通过自己定义构造函数初始化节点：
+
+```c++
+ListNode* head = new ListNode(5);
+```
+
+
+
+## 2. 移除链表元素
+
+[203. 移除链表元素](https://leetcode.cn/problems/remove-linked-list-elements/)
+
+给你一个链表的头节点 `head` 和一个整数 `val` ，请你删除链表中所有满足 `Node.val == val` 的节点，并返回 **新的头节点** 。
+
+若当前节点的下一个节点是删除元素，则将当前节点指向下下个节点。
+
+为了避免头节点删除和其他节点的不同，**可以设置一个虚拟头结点**，原链表的所有节点就都可以按照统一的方式进行移除了。
+
+```c++
+class Solution {
+public:
+    ListNode* removeElements(ListNode* head, int val) {
+        ListNode* hair = new ListNode(0);
+        hair->next = head;
+        for (auto p = hair; p;) {
+            if (p->next && p->next->val == val) {
+                auto temp = p->next;
+                p->next = p->next->next;
+                delete temp;
+            }
+            else  p = p->next;
+        }
+        head = hair->next;
+        delete hair;
+        return head;
+    }
+};
+```
+
+
+
+## 3. 反转链表
+
+[206. 反转链表](https://leetcode.cn/problems/reverse-linked-list/)
+
+给你单链表的头节点 `head` ，请你反转链表，并返回反转后的链表。
+
+**双指针**
+
+```c++
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        ListNode* pre = NULL;
+        ListNode* cur = head;
+        while (cur) {
+            auto next = cur->next;		// 记录next指针
+            cur->next = pre;			// 修改cur指向，反转
+            pre = cur;					// 移动
+            cur = next;		
+        }
+        return pre;
+    }
+};
+```
+
+**递归**
+
+```c++
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        if(!head || !head->next) return head;
+        auto last = reverseList(head->next);	// last为最后一个节点
+        head->next->next = head;				// 让当前节点的下一个节点指向自己
+        head->next = nullptr;					// 当前节点指向空
+        return last;
+    }
+};
+```
+
+
+
+## 4. 两交换链表中的节点
+
+[24. 两两交换链表中的节点](https://leetcode.cn/problems/swap-nodes-in-pairs/)
+
+给你一个链表，两两交换其中相邻的节点，并返回交换后链表的头节点。你必须在不修改节点内部的值的情况下完成本题（即，只能进行节点交换）。
+
+对于头节点可能会更改的使用虚拟头节点。
+
+涉及交换相邻两个元素了，**要画图，不画图，操作多个指针很容易乱，而且要操作的先后顺序**
+
+```c++
+class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        ListNode* hair = new ListNode(0);
+        hair->next = head;
+        auto cur = hair;
+        while (cur->next && cur->next->next) {
+            auto tmp1 = cur->next;
+            auto tmp2 = tmp1->next;
+            cur->next = tmp2;
+            tmp1->next = tmp2->next;
+            tmp2->next = tmp1;
+            cur = tmp1;  // cur = cur->next->next;
+        }
+        return hair->next;
+    }
+};
+```
+
+
+
+## 5. 删除链表的倒数第N个节点
+
+[19. 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/)
+
+**快慢指针**
+
+快指针先走 $k$，然后两个指针同步走，当快指针走到头(最后一个值)时，慢指针就是链表倒数第 $k + 1$ 个节点
+
+将倒数第 $k - 1$ 个节点指向倒数第 $k + 1$ 个节点，实现删除倒数第 $k$ 个节点
+
+```c++
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode* hair = new ListNode(0);
+        hair->next = head;
+        auto fast = hair;
+        auto slow = hair;
+        while (n--) fast = fast->next;
+        while (fast->next) {
+            fast = fast->next;
+            slow = slow->next;
+        }
+        slow->next = slow->next->next;
+        return hair->next;
+    }
+};
+```
+
+
+
+## 6. 链表相交
+
+[160. 相交链表](https://leetcode.cn/problems/intersection-of-two-linked-lists/)
+
+给你两个单链表的头节点 `headA` 和 `headB` ，请你找出并返回两个单链表相交的起始节点。如果两个链表没有交点，返回 null 。
+
+思路：
+
+用两个指针分别从两个链表头部开始扫描，每次分别走一步；
+如果指针走到 `null`，则从另一个链表头部开始走；
+当两个指针相同时，
+如果指针不是 `null`，则指针位置就是相遇点；
+如果指针是 `null`，则两个链表不相交；
+
+证明：
+
+1. 若两个链表不相交：
+
+    设两链长度分别为 a 和 b，两个指针分别走 a + b 最后在 null 相遇。
+
+2. 若两个链表相交：
+
+    设两链独自部分为 a 和 b，公共部分为 c，则两个指针分别走 a + b + c 在交点相遇
+
+时间复杂度分析：每个指针走的长度不大于两个链表的总长度，所以时间复杂度是 $O(n)$
+
+```c++
+class Solution {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        auto p = headA;
+        auto q = headB;
+        while (p != q) {
+            p = p ? p->next : headB;
+            q = q ? q->next : headA;
+        }
+        return p;
+    }
+};
+```
+
+
+
+## 7. 环形链表
+
+[142. 环形链表 II](https://leetcode.cn/problems/linked-list-cycle-ii/)
+
+给定一个链表，返回链表开始入环的第一个节点。 如果链表无环，则返回 null。
+
+**判断链表是否有环**
+
+可以使用快慢指针法，分别定义 fast 和 slow 指针，从头结点出发，fast指针每次移动两个节点，slow指针每次移动一个节点，如果 fast 和 slow指针在途中相遇 ，说明这个链表有环。
+
+![环形链表](https://gitee.com/lxxdao/image/raw/master/algorithm/8.7.1环形链表.png)
+
+第一次相遇时 fast 所走的距离是 $x+(y+z)∗n+y$, $n$ 表示圈数，同时 fast 走过的距离是 slow 的两倍，也就是 $2(x+y)$，所以我们有 $x+(y+z)∗n+y=2(x+y)$，所以 $x=(n−1)×(y+z)+z$。那么我们让 slow 从 $c$ 点开始走，走 $x$ 步，会恰好走到 $b$ 点；让 fast 从 $a$ 点开始走，走 $x$ 步，也会走到 $b$ 点。
+
+fast走过的长度： 
+
+$x+(y+z)∗n+y+x = x+y+n(y+z)+(n−1)(y+z)+z = x+y+z+(2n-1)(y+z)$
+
+slow走过的长度： 
+
+$x + y + z$
+
+```c++
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        auto fast = head, slow = head;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+            if (slow == fast) {
+                fast = head;
+                while (fast != slow) {
+                    fast = fast->next;
+                    slow = slow->next;
+                }
+                return fast;
+            }
+        }
+        return NULL;
+    }
+};
+```
+
