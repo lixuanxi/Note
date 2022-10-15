@@ -1916,6 +1916,70 @@ int query(string str) {
 
 
 
+### 4. 最大异或对      
+
+[Acwing143. 最大异或对](https://www.acwing.com/problem/content/145/)
+
+在给定的 *N* 个整数 $A_1，A_2……A_N$ 中选出两个进行 *xor*（异或）运算，得到的结果最大是多少？
+
+典树不单单可以高效存储和查找字符串集合,还可以存储二进制数字
+思路:将每个数以二进制方式存入字典树,找的时候从最高位去找有无该位的异。
+
+```c++
+#include<iostream>
+using namespace std;
+
+const int N = 1e5;
+int son[31 * N][2], a[N], idx;
+// 第一位为字符串最大可能总长度 每个数字31位共有N个
+void insert(int x) {
+    int p = 0;
+    for (int i = 30; i >= 0; i--) {
+        int u = x >> i & 1; // 取二进制数的某一位的值
+        if (!son[p][u]) son[p][u] = ++idx;
+        p = son[p][u];
+    }
+}
+
+int query(int x) {
+    int p = 0, res = 0;
+    for (int i = 30; i >= 0; i--) {
+        int u = x >> i & 1;
+        if (son[p][!u]) {           //如果与该位数字不相同的数字存在
+            p = son[p][!u];         //p走到存在的数字上
+            //这里的返回的是原始数据 还需要与x相异或 才能得到最大值
+            res = res * 2 + !u ;    //这个地方与十进制一样 n = n * 10 + x;
+            //返回的是与x异或的最大值
+            //res = res * 2 + 1;    
+            //或者两条改写成一条 res += 1 << i;
+        }else {
+            p = son[p][u];          //退而求其次 走相同的地方
+            res = res * 2 + u;
+            //res = res * 2 + 0;
+        }
+    }
+    return res;                     //这里的res返回的是能与x异或得到最大的数
+}
+int main() {
+    int n, x; 
+    cin >> n;
+    int res = 0;
+    for (int i = 0; i < n; i++) {
+        cin >> x;
+        insert(x);
+        int t = query(x);
+        res = max(res, x ^ t);
+        //res = max(res, t);
+    }
+    cout << res << endl;
+    return 0;
+}
+```
+
+
+
+
+
 ------
 
 
