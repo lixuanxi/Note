@@ -1202,7 +1202,7 @@ void remove(int k) {
 ```c++
 int h[N], e[N], ne[N], idx;
 memset(h, -1, sizeof(h));
-
+// memset只有赋值0，-1才有用
 // 添加边
 void add(int a, int b) {
 	e[idx] = b;
@@ -1891,8 +1891,7 @@ int son[N][26], cnt[N], idx;
 // 插入一个字符串
 void insert(string str) {
     int p = 0;	//从根节点开始遍历	类似指针，指向当前节点
-    for (int i = 0; str[i] 或 i < str.size() ; i ++ )	//退出条件str[i]为空
-    {
+    for (int i = 0; str[i] 或 i < str.size() ; i ++ ) {//退出条件str[i]为空
         int u = str[i] - 'a';	//把字母转化成数字
         if (!son[p][u]) son[p][u] = ++ idx;	//如果没有该子节点就创建一个
         p = son[p][u];			//走到p的子节点 使“p指针”指向下一个节点位置
@@ -1903,8 +1902,7 @@ void insert(string str) {
 // 查询字符串出现的次数
 int query(string str) {
     int p = 0;
-    for (int i = 0; str[i] 或 i < str.size(); i ++ )
-    {
+    for (int i = 0; str[i] 或 i < str.size(); i ++ ） {
         int u = str[i] - 'a';
         if (!son[p][u]) return 0;//该节点不存在，即该字符串不存在
         p = son[p][u];
@@ -2093,8 +2091,8 @@ p[find(a)] = find(b);
 ### 2. 维护size的并查集
 
 ```C++
-//p[]存储每个点的祖宗节点, count[]只有祖宗节点的有意义，表示祖宗节点所在集合中的点的数量
-int p[N], count[N];
+//p[]存储每个点的祖宗节点, cnt[]只有祖宗节点的有意义，表示祖宗节点所在集合中的点的数量
+int p[N], cnt[N];
 
 // 返回x的祖宗节点
 int find(int x) {
@@ -2103,13 +2101,14 @@ int find(int x) {
 }
 
 // 初始化，假定节点编号是1~n
-for (int i = 1; i <= n; i ++ ){
+for (int i = 1; i <= n; i ++ ) {
 	p[i] = i;
- 	count[i] = 1;
+ 	cnt[i] = 1;
 }
 
 // 合并a和b所在的两个集合：
-count[find(b)] += count[find(a)];
+if (find(a) == find(b)) continue; // 合并前判断是否在一个集合
+cnt[find(b)] += cnt[find(a)];	// 因为后面a的祖宗变成了b 所以b+=a 这样a块的数量就是b的数量
 p[find(a)] = find(b);
 
 ```
@@ -2144,6 +2143,90 @@ for (int i = 1; i <= n; i++) {
 // 合并a和b所在的两个集合：
 p[find(a)] = find(b);
 d[find(a)] = distance; // 根据具体问题，初始化find(a)的偏移量
+```
+
+#### 例题：食物链
+
+[AcWing. 食物链](https://www.acwing.com/problem/content/242/)
+
+动物王国中有三类动物 *A*,*B*,*C*，这三类动物的食物链构成了有趣的环形。
+
+*A* 吃 *B*，*B* 吃 *C*，*C* 吃 *A*。
+
+现有 *N* 个动物，以 1∼*N* 编号。
+
+每个动物都是 *A*,*B*,*C* 中的一种，但是我们并不知道它到底是哪一种。
+
+有人用两种说法对这 *N* 个动物所构成的食物链关系进行描述：
+
+第一种说法是 `1 X Y`，表示 *X* 和 *Y* 是同类。
+
+第二种说法是 `2 X Y`，表示 *X* 吃 *Y*。
+
+此人对 *N* 个动物，用上述两种说法，一句接一句地说出 *K* 句话，这 *K* 句话有的是真的，有的是假的。
+
+当一句话满足下列三条之一时，这句话就是假话，否则就是真话。
+
+1. 当前的话与前面的某些真的话冲突，就是假话；
+2. 当前的话中 *X* 或 *Y* 比 *N* 大，就是假话；
+3. 当前的话表示 *X* 吃 *X*，就是假话。
+
+你的任务是根据给定的 *N* 和 *K* 句话，输出假话的总数。
+
+```c++
+#include<iostream>
+using namespace std;
+const int N= 50010;
+int n, m;
+int p[N], d[N]; // p = parent d = distant
+// d[x] 表示 x 与 p[x] 的关系
+// d[x]存储的永远是x到p[x]的距离，其目的是为了求x到根节点的距离
+// 0 代表是同类，1 代表是x吃p[x], 根据关系图自然2就代表x被[x]吃。
+// 余1 吃根； 余2 被根吃； 余3 余根节点是同类
+int find(int x) {
+    if(p[x] != x) {
+        int tmp = find(p[x]);	// 用tmp存储根结点
+        d[x] += d[p[x]];		// d[p[x]]被更新为父节点到根节点的距离
+        p[x] = tmp;				// 父节点指向根结点
+    }
+    return p[x];
+}
+
+
+int main() {
+    cin >> n >> m;
+    for (int i = 1; i <= n ; i++) p[i] = i;
+
+    int res = 0;
+
+    while (m--) {
+
+        int op, x, y;
+        cin >> op >> x >> y;
+        if (x > n || y > n) res ++;
+        else {
+            int px = find(x), py = find(y); // px,py是x,y的根节点
+            if (op == 1) {  //op == 1 是同类 所以d[x] d[y] 相差要在 3 的倍数
+                //如果px=py x和y是在同一棵树上
+                //如果d[x] - d[y] % 3 不为0 说明存在吃的关系 与同类冲突
+                if (px == py && (d[x] - d[y]) % 3) res++; 
+                else if (px != py) {    //不在一颗树上 添加信息
+                    p[px] = py;        //添加同类  px的根节点是py
+                    d[px] = d[y] - d[x];   //d[px] 为px到根节点的距离
+                } 
+            } else {
+            // x 吃 y y就是第0代 x就是第1代 所以 (d[x] - d[y] - 1) % 3 = 0;
+                if (px == py && (d[x] - d[y] - 1) % 3) res++;
+                else if (px != py) {    
+                    p[px] = py;         //不在一颗树上 添加信息
+                    d[px] = d[y] + 1 - d[x];
+                }
+            }
+        }
+    }
+    cout << res << endl;
+    return 0;
+}
 ```
 
 
