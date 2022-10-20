@@ -2247,24 +2247,24 @@ int main() {
 
 ```C++
 // h[N]存储堆中的值, h[1]是堆顶，x的左儿子是2x, 右儿子是2x + 1 count是节点数量
-int h[N], count;
+int h[N], cnt;
 void down(int u) {
     
     // 递归实现
     int t = u;
     // 让t等于左右节点中最小的节点
-    if (2 * u <= count && h[t] > h[2 * u])	t = 2 * u;
-    if (2 * u + 1 <= count && h[t] > h[2 * u + 1])	t = 2 * u + 1;
+    if (2 * u <= cnt && h[t] > h[2 * u])	t = 2 * u;
+    if (2 * u + 1 <= cnt && h[t] > h[2 * u + 1])	t = 2 * u + 1;
     if (u != t) {		 //u!=t 说明该节点不是最小的 交换值后递归处理
         swap(h[u], h[t]);
         down(t);
     }
     
     // 循环实现
-    while (2 * u <= count) {
+    while (2 * u <= cnt) {
         // 让t等于左右节点中最小的节点
         int t = 2 * u;
-        if (t + 1 <= count && h[t + 1] < h[t]) t++;
+        if (t + 1 <= cnt && h[t + 1] < h[t]) t++;
         if (h[u] < h[t]) break;	 // 如果该节点小于子节点 退出循环
         swap(h[u], h[t]);
         u = t;
@@ -2273,13 +2273,16 @@ void down(int u) {
 }
 
 // O(n)建堆
+cnt = n;
 for (int i = n / 2; i; i -- ) down(i);
 
 // 返回最小值并删除
+while (m -- ) {
 	cout << h[1] << ' ';
-	h[1] = h[cnt];
-	count --;
-	down(1);
+ 	h[1] = h[cnt];
+   	cnt--;
+   	down(1);
+}
 ```
 
 **i 为什么从 n/2 开始 down ？**
@@ -2337,7 +2340,7 @@ void heap_swap(int a, int b) {
 
 2. 求集合当中的最小值    `heap[1];`
 
-3. 删除最小值    		        `heap[1] = heap[size]; size--; down(1);`
+3. 删除最小值    		       `heap[1] = heap[size]; size--; down(1);`
 
 4. 删除任意一个元素 	   `heap[k] = heap[size]; size--; down(k); up(k);`
 
