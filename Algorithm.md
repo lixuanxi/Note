@@ -2325,7 +2325,7 @@ void heap_swap(int a, int b) {
 
 **如何手写一个堆？实现功能**
 
-1. 插入一个数		  		 `heap[++count] = x; up(count);`
+1. 插入一个数		  		 `heap[++cnt] = x; up(cnt);`
 
    ```c++
    if (op == "I") {
