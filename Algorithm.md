@@ -2247,14 +2247,15 @@ int main() {
 
 ```C++
 // h[N]存储堆中的值, h[1]是堆顶，x的左儿子是2x, 右儿子是2x + 1 count是节点数量
+// 如果堆顶从h[1]开始，左儿子是2x + 1，右儿子是 2x + 2
 int h[N], cnt;
 void down(int u) {
     
     // 递归实现
     int t = u;
     // 让t等于左右节点中最小的节点
-    if (2 * u <= cnt && h[t] > h[2 * u])	t = 2 * u;
-    if (2 * u + 1 <= cnt && h[t] > h[2 * u + 1])	t = 2 * u + 1;
+    if (2 * u <= cnt && h[2 * u] < h[t]) t = 2 * u;
+    if (2 * u + 1 <= cnt && h[2 * u + 1] < h[t]) t = 2 * u + 1;
     if (u != t) {		 //u!=t 说明该节点不是最小的 交换值后递归处理
         swap(h[u], h[t]);
         down(t);
@@ -2275,6 +2276,7 @@ void down(int u) {
 // O(n)建堆
 cnt = n;
 for (int i = n / 2; i; i -- ) down(i);
+// for (int i = n / 2; i >= 0; i -- ) down(i); 下标从0开始
 
 // 返回最小值并删除
 while (m -- ) {
@@ -2310,6 +2312,8 @@ while (m -- ) {
 用 `ph` 数组来表示 `ph[idx] = k(idx到下标)`, 那么节点值为 `h[ph[idx]]`, 儿子为 `ph[idx] * 2`和`ph[idx] * 2 + 1` , 这样值和儿子结点不就可以通过`idx`联系在一起
 
 **2. 理解hp与ph数组**
+
+hp由h指向p，由堆的下标得出第几个插入的；ph由p指向h，由第几个插入的推出堆的下标。
 
 ph数组主要用于帮助从idx映射到下标k，似乎有了ph数组就可以完成所有操作了，但为什么还要有一个hp数组呢？
 
@@ -2366,7 +2370,7 @@ void heap_swap(int a, int b) {
 // h[N]存储堆中的值, h[1]是堆顶，x的左儿子是2x, 右儿子是2x + 1
 // ph[k]存储第k个插入的点在堆中的位置
 // hp[k]存储堆中下标是k的点是第几个插入的
-int h[N], count;
+int h[N], cnt;
 int ph[N], hp[N];
 int idx;
 
@@ -2379,8 +2383,8 @@ void heap_swap(int a, int b) {
 
 void down(int u) {
     int t = u;
-    if (u * 2 <= count && h[u * 2] < h[t]) t = u * 2;
-    if (u * 2 + 1 <= count && h[u * 2 + 1] < h[t]) t = u * 2 + 1;
+    if (u * 2 <= cnt && h[u * 2] < h[t]) t = u * 2;
+    if (u * 2 + 1 <= cnt && h[u * 2 + 1] < h[t]) t = u * 2 + 1;
     if (u != t) {
         heap_swap(u, t);
         down(t);
@@ -2396,9 +2400,9 @@ void up(int u) {
 // 堆的插入操作
 if (op == "I") {
     cin >> x;
-    count ++ ;
+    cnt ++ ;
     idx ++ ; //记录第几次插入（设置新的idx）
-    ph[idx] = count, hp[count] = idx; //每次插入都是在堆尾插入（设置ph与hp）
+    ph[idx] = cnt, hp[cnt] = idx; //每次插入都是在堆尾插入（设置ph与hp）
     h[ph[idx]] = x; //记录插入的值 
     up(ph[idx]);
 }
@@ -2408,7 +2412,7 @@ if (op == "D") {
     cin >> k;
     k = ph[k]; //必须要保存当前被删除结点的下标
     heap_swap(k, count);//第idx个插入的元素移到了堆尾，此时ph[idx]指向堆尾 
-    count --;  //删除堆尾
+    cnt --;  //删除堆尾
     up(k);//k是之前记录被删除的结点的下标
     down(k);
 }
@@ -2420,6 +2424,15 @@ if (op == "C") {
      h[k] = x;
      down(k), up(k);
 }
+
+// 删除堆顶
+if (op == "DM") {
+   	heap_swap(1, cnt);
+    cnt--;
+   	down(1);
+}
+// 输出堆顶
+cout << h[1] << endl;
 ```
 
 
