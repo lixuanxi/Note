@@ -303,8 +303,6 @@ journalctl（英文全拼：journal  control），其功能是用于查看指定
 
 
 
-
-
 ------
 
 
@@ -2816,6 +2814,15 @@ ssh root@xxx.xxx.xxx.xxx  # 注意腾讯云登录的用户不是root，而是ubu
 ```shell
 adduser acs  # 创建用户acs
 usermod -aG sudo acs  # 给用户acs分配sudo权限
+
+#在指定home文件下创建目录
+useradd -d 指定家目录 用户名
+
+#删除用户(不删除home目录)
+userdel 用户名
+
+#删除用户(删除目录,最好别用)
+userdel -r tom
 ```
 
 

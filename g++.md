@@ -593,7 +593,7 @@ file 后面加使用-g 编译的文件，可以不用退出，gdb 直接读取�
 
 **makefile**： 管理项目
 
-​		命名：makefile Makefile --- make 命令
+​		命名：makefile   Makefile --- make 命令
 
 ## 1 个规则
 
@@ -666,31 +666,6 @@ file 后面加使用-g 编译的文件，可以不用退出，gdb 直接读取�
 ​		 -f：指定文件执行 make 命令。  例如文件名：xxxx.mk
 
 
-
-
-
-```
-# Stop your local container if necessary
-docker rm -f findorad || exit 1
-# Start your validator container
-docker run -d \
-    -v ${ROOT_DIR}/tendermint:/root/.tendermint \
-    -v ${ROOT_DIR}/findorad:/tmp/findora \
-    -p 8669:8669 \
-    -p 8668:8668 \
-    -p 8667:8667 \
-    -p 26657:26657 \
-    -e EVM_CHAIN_ID=2153 \
-    --name findorad \
-    findoranetwork/findorad:latest node \
-    --ledger-dir /tmp/findora \
-    --tendermint-host 0.0.0.0 \
-    --tendermint-node-key-config-path="/root/.tendermint/config/priv_validator_key.json" \
-    --enable-query-service
-    --enable-eth-api-service
-    
-    
-```
 
 
 
