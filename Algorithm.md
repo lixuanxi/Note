@@ -234,6 +234,11 @@ void merge_sort(vector<int> &q, int l, int r, vector<int> &tmp) {
 
 ## 3. 二分法
 
+1. 确定一个区间，使得目标值一定在区间中
+2. 找一个性质，满足：
+    - 性质具有二段性
+    - 答案是二段性的分界点
+
 有单调性一定可以二分，二分不一定需要单调性
 
 二分的本质：给定某个区间，在区间上定义了某种性质，使得整个区间一分为二，一半区间满足性质，另一半不满足性质
@@ -247,6 +252,8 @@ void merge_sort(vector<int> &q, int l, int r, vector<int> &tmp) {
 先写 `check` 函数  想想 `true` 的更新区间是 `r=mid` 还是 `l=mid`
 
 最后根据是 `r` 还是 `l` 来判断 `mid` 是否要 `+1`
+
+
 
 ### 1. 整数二分
 
@@ -905,8 +912,21 @@ int main() {
 
    ```
    x = 1010		lobit(x) = 10	 返回最后一位1 故返回10
-   x = 101000		lobit(x) = 1000		
+   x = 101000		lobit(x) = 1000	
    ```
+
+3. 计算二进制中1的个数
+
+    n & (n - 1) 可以每次把 n 中最后一个 1 置 0
+
+    ```c++
+    while (n--) {
+    	n & (n - 1);
+        res++;		// n中1的个数
+    }
+    ```
+
+    
 
 ### 二进制中1的个数
 
@@ -2761,7 +2781,7 @@ flip(k) 把第k位取反
 ### 11. stirng
 
 ```
-find()
+find("s", n(默认为0))    寻找s在字符串下标n后的第一个出现位置,若不存在返回npos
 substr()	
 stot(string)	string转成int		 int
 isdigit(char)	判断字符是否是十进制数 bool

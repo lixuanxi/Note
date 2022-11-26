@@ -2879,7 +2879,8 @@ sudo apt-get install tmux
 为了避免每次使用 `docker` 命令都需要加上 `sudo` 权限，可以将当前用户加入安装中自动创建的 `docker` 用户组(可以参考[官方文档](https://docs.docker.com/engine/install/linux-postinstall/))：
 
 ```shell
-sudo usermod -aG docker $USER(你的用户名)
+sudo groupadd docker						// 1. 创建docker组
+sudo usermod -aG docker $USER(你的用户名)	 // 2. 将您的用户添加到docker组中
 ```
 
 安装sudo：
