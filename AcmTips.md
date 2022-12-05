@@ -195,7 +195,9 @@ gets(str);
 
 给定**一行字符串**，每个字符串用**逗号**间隔，**一个样例为一行**
 
-方法：使用 getline 读取一整行字符串到字符串input中，然后使用字符串流stringstream，读取单个数字或者字符。每个字符中间用','间隔。
+方法：使用 getline 读取一整行字符串到字符串input中，然后使用字符串流 ==`stringstream`==，读取单个数字或者字符。每个字符中间用','间隔。
+
+需要 ==`#include <sstream>`== 头文件
 
 istream& getline ( istream &is , string &str , char delim ); 
 

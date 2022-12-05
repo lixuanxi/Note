@@ -28,6 +28,14 @@
 
 
 
+**常用技巧**
+
+上取整：$\lceil\frac{a}{b}\rceil = \frac{a + b - 1}{b}$
+
+负数取模的负数，需要正数：$a\bmod{b} = (a \%{b}+b)\%{b}$
+
+
+
 # 第一章 基础算法
 
 
@@ -251,6 +259,9 @@ void merge_sort(vector<int> &q, int l, int r, vector<int> &tmp) {
 
 先写 `check` 函数  想想 `true` 的更新区间是 `r=mid` 还是 `l=mid`
 
+- [L，左端点），[左端点，R]
+- [L，右端点]，（右端点，R]
+
 最后根据是 `r` 还是 `l` 来判断 `mid` 是否要 `+1`
 
 
@@ -261,10 +272,8 @@ void merge_sort(vector<int> &q, int l, int r, vector<int> &tmp) {
 bool check(int x) {/* ... */} // 检查x是否满足某种性质
 
 // 区间[l, r]被划分成[l, mid]和[mid + 1, r]时使用：
-int bsearch_1(int l, int r) //寻找右区间的的左端点
-{
-    while (l < r)
-    {
+int bsearch_1(int l, int r) { //寻找右区间的的左端点
+    while (l < r) {
         int mid = l + r >> 1;		//小的数找左端点
         if (check(mid)) r = mid;    //check()判断mid是否满足性质
         else l = mid + 1;			//找的是右区间所以check要用来判断是否满足右区间
@@ -272,10 +281,8 @@ int bsearch_1(int l, int r) //寻找右区间的的左端点
     return l;
 }
 // 区间[l, r]被划分成[l, mid - 1]和[mid, r]时使用：
-int bsearch_2(int l, int r) //寻找作左区间的右端点
-{
-    while (l < r)
-    {
+int bsearch_2(int l, int r) { //寻找作左区间的右端点
+    while (l < r) {
         int mid = l + r + 1 >> 1;	//大的数找右端点
         if (check(mid)) l = mid;	//找的是左区间所以check要用来判断是否满足左区间
         else r = mid - 1;
@@ -341,11 +348,9 @@ int main() {
 ```C++
 bool check(double x) {/* ... */} // 检查x是否满足某种性质
 
-double bsearch_3(double l, double r)
-{
+double bsearch_3(double l, double r) {
     const double eps = 1e-6;   // eps 表示精度，取决于题目对精度的要求，一般比要求大2位
-    while (r - l > eps)
-    {
+    while (r - l > eps) {
         double mid = (l + r) / 2;
         if (check(mid)) r = mid;
         else l = mid;
@@ -4191,7 +4196,7 @@ N件物品，容量为V的背包。每件物品只能用一次。
 
 ​	② 选法中包含 i ，即从 1 ~ i 中选，包含 i ，且总体积不超过 j
 
-​		可以先把第 i 个物品拿出来，即从第 1 ~ i-1中选，且总体积不超过 j - v[i]
+​		可以先把第 i 个物品拿出来，即从第 1 ~ i-1中选，且总体积不超过 j - v[i] **（曲线救国思路）**
 
 ​		即：`f[i - 1][j - v[i]] + w[i]`
 
@@ -4210,7 +4215,7 @@ int main() {
         for(int j = 0; j <= m; j++) {
             f[i][j] = f[i-1][j];	// 默认装不下第i个物品
             // 能装，需进行决策是否选择第i个物品
-            if(j>=v[i]) f[i][j] = max(f[i][j], f[i-1][j-v[i]]+w[i]);
+            if(j>=v[i]) f[i][j] = max(f[i-1][j], f[i-1][j-v[i]]+w[i]);
         }
     }
     cout << f[n][m] << endl;
