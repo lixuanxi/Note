@@ -3246,12 +3246,30 @@ gra.resize(n + 1); 	// 初始化长度
 for (int i = 0; i < m; i++) {
         int a, b, c;			// 点a到点b的有向边，边长为c
         cin >> a >> b >> c;		
-        gra[a].push_back({ b,c });
+        gra[a].push_back({b, c});
 }
 
 for (int i = 0; i < gra[node].size(); i++) {	// 遍历邻接表
    	int newnode = gra[node][i].first;
     int len = gra[node][i].second;
+}
+```
+
+```c++
+struct Edge {		// 也可以用pair<int, int>
+	int id, w;
+};
+vector<Edge> gra[N];
+for (int i = 0; i < n; i++) {
+    int a, b, c;
+    scanf("%d%d%d", &a, &b, &c);
+    h[a].push_back({b, c});			// 点a到点b的有向边，边长为c
+    h[b].push_back({a, c});			// 无向边
+}
+
+for (auto node: h[u]) {				// 遍历
+    int newnode = node.id;
+    int len = node.w;
 }
 ```
 
@@ -3266,7 +3284,7 @@ for (int i = 0; i < gra[node].size(); i++) {	// 遍历邻接表
 ```c++
 vector<int> h(N,-1);	// 邻接表存储树，有n个节点，所以需要n个队列头节点
 int e[M], ne[M], idx;	// 存储元素、next指针、下标值
-bool st[N]; 			//记录节点是否被访问过，访问过则标记为true
+bool st[N]; 			// 记录节点是否被访问过，访问过则标记为true
 int dfs(int u) {
     st[u] = true; // st[u] 表示点u已经被遍历过
     for (int i = h[u]; i != -1; i = ne[i]) {
@@ -3275,6 +3293,23 @@ int dfs(int u) {
     }
 }
 ```
+
+````c++
+struct Edge {		// 也可以用pair<int, int>
+    int id, w;
+};
+vector<Edge> h[N];	// 存储图
+bool st[N];
+int dfs(int u) {
+    st[u] = true; // st[u] 表示点u已经被遍历过
+    for (auto node: h[u]) {
+        int j = node[id];
+        if (!st[j]) dfs(j);
+    }
+}
+````
+
+
 
 **(2) 宽度优先遍历**
 
@@ -3302,12 +3337,63 @@ while (q.size()) {
             //q[++tt] = j;
         }
     }
+    /*   stl格式
+    for (auto j : h[t]) {
+        if (!st[j]) {
+            st[j] = true; // 表示点j已经被遍历过
+            q.push(j);
+            //q[++tt] = j;
+        }
+    }
+    */
 }
 ```
 
 
 
-### 3. 拓扑排序
+### 3. 树的直径
+
+树的直径：树中长度最长的路径
+
+1. 任选一点 $x$
+2. 找到距离 $x$ 最远的点 $y$
+3. 从 $y$ 开始遍历，找到离 $y$ 最远的点，与 $y$ 最远的点的距离是树的直径
+
+```c++
+vector<Edge> h[N];	// 存储图
+int dist[N];		// 记录距离
+
+void dfs(int u, int father, int distance) {
+    dist[u] = distance;
+
+    for (auto node : h[u])
+        if (node.id != father)
+            dfs(node.id, u, distance + node.w);
+}
+
+int main() {
+    /*
+    处理输入
+    */
+    dfs(1, -1, 0);						// 找到距离x最大的
+    int u = 1;
+    for (int i = 1; i <= n; i ++ )
+        if (dist[i] > dist[u])
+            u = i;
+
+    dfs(u, -1, 0);
+    for (int i = 1; i <= n; i ++ )
+        if (dist[i] > dist[u])
+            u = i;
+
+    int s = dist[u];
+    
+}
+```
+
+
+
+### 4. 拓扑排序
 
 **时间复杂度 O(n+m)，n 表示点数，m 表示边数**
 
@@ -3326,8 +3412,6 @@ while (q.size()) {
 - 一个有向图，如果图中有入度为 0 的点，就把这个点删掉，同时也删掉这个点所连的边。
 
 - 一直进行上面出处理，如果所有点都能被删掉，则这个图可以进行拓扑排序。
-
-
 
 ```c++
 int d[N];	// 存的是入度数
