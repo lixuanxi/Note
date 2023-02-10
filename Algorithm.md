@@ -2649,6 +2649,7 @@ empty()
 clear()
 substr(起始下标，(子串长度))  返回子串
 c_str()  返回字符串所在字符数组的起始地址
+string.find(str,position) 找出字母或字符串在字符串中的位置（下标）
 ```
 
 
@@ -2933,12 +2934,43 @@ void dfs(int u) {
             path[u] = i;        // 把 i 填入数字排列的位置上
             state[i] = true;    // 表示该数字用过了 不能再用
             dfs(u + 1);         // 这个位置的数填好 递归到右面一个位置
-            state[ia] = false;  // 恢复现场 该数字后续可用
+            state[i] = false;  // 恢复现场 该数字后续可用
         }
     }
     // for 循环全部结束了 dfs(u)才全部完成 回溯
 }
 dfs(0);	// 在path[0]处开始填数
+```
+
+如果有重复元素的存在，需要额外判断信息：
+
+对于相同数，我们人为定序，就可以避免重复计算：我们在dfs时记录一个额外的状态，记录上一个相同数存放的位置 start，我们在枚举当前数时，只枚举 `start+1,start+2,…,start+1,start+2,…,n` 这些位置。
+
+```c++
+// 两种写法
+// 第一种记录额外状态
+if (!st[i]) {
+    st[i] = true;
+    path[i] = nums[u];
+    // 下一个数和当前摆放的数不同，可以选择任意位置；如果相同，必须摆放在该数后面
+    if (u + 1 < nums.size() && nums[u + 1] != nums[u]) 
+		dfs(nums, u + 1, 0);
+  	else 
+		dfs(nums, u + 1, i + 1);    
+        // 对于相同的数，只用第一个没有用过的！！！
+        // 所以下一次遍历从 i+1 开始选 这样就能按顺序用
+    t[i] = false;
+}
+// 第二种根据排序后的性质
+if (!st[i]) {
+    if (i && nums[i - 1] == nums[i] && !st[i - 1]) continue;
+    // 前一个数也是皇子,即当前不是第一个没有被用过的数,相同的前几个数没有被用过则跳过
+    st[i] = true;
+    path[u] = nums[i];
+    dfs(nums, u + 1);
+    st[i] = false;
+}
+
 ```
 
 
@@ -2953,10 +2985,53 @@ n 皇后问题是指将 n 个皇后放在 n∗n 的国际象棋棋盘上，使�
 
 代码分析
 
-> 对角线 `dg[u+i]dg[u+i]`，反对角线 `udg[n−u+i]udg[n−u+i]` 中的下标 `u+i` 和 `n−u+i` 表示的是截距
+> 对角线 `dg[u+i]`，反对角线 `udg[n−u+i]` 中的下标 `u+i` 和 `n−u+i` 表示的是截距
 
-```
+```c++
+#include <iostream>
+using namespace std;
+const int N = 20; 
 
+// bool数组用来判断搜索的下一个位置是否可行
+// col列，dg对角线，udg反对角线
+// g[N][N]用来存路径
+
+int n;
+char g[N][N];
+bool col[N], dg[N], udg[N];
+
+void dfs(int u) {
+    // u == n 表示已经搜了n行，故输出这条路径
+    if (u == n) {
+        for (int i = 0; i < n; i ++ ) puts(g[i]);   // 等价于cout << g[i] << endl;
+        puts("");  // 换行
+        return;
+    }
+
+    //对n个位置按行搜索
+    for (int i = 0; i < n; i ++ )
+        // 剪枝(对于不满足要求的点，不再继续往下搜索)  
+        // udg[n - u + i]，+n是为了保证下标非负
+        if (!col[i] && !dg[u + i] && !udg[n - u + i]) {
+            g[u][i] = 'Q';
+            col[i] = dg[u + i] = udg[n - u + i] = true;
+            dfs(u + 1);
+            col[i] = dg[u + i] = udg[n - u + i] = false; // 恢复现场 这步很关键
+            g[u][i] = '.';
+
+        }
+}
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i ++ )
+        for (int j = 0; j < n; j ++ )
+            g[i][j] = '.';
+
+    dfs(0);
+
+    return 0;
+}   
 ```
 
 **算法2**
@@ -6264,6 +6339,60 @@ int main() {
         sum += w;
     }
     cout << res << endl;
+    return 0;
+}
+```
+
+
+
+## 6. 均值不等式
+
+$$
+\frac{{x_1}^2+{x_2}^2+...+{x_n}^2}{n} ≥ (\frac{{x_1}+{x_2}+...+{x_n}}{n})^2
+$$
+
+$$
+且x_1=x_2=...=x_n=\frac{c}{n}取到最小值
+$$
+
+### 付账问题
+
+为了公平起见，我们希望在总付钱量恰好为 $S$ 的前提下，最后每个人付的钱的标准差最小。
+
+**算法思路：**
+
+标准差的介绍：标准差是多个数与它们平均数差值的平方平均数，一般用于刻画这些数之间的“偏差有多大”。
+
+首先我们要知道标准差表示的是数据的波动程度，其值越大波动越大。要使得标准差小，我们就要尽可能使得数据都比较接近平均值。
+
+那么这题贪心策略应该是这样的：首先算出平均值 $\frac{s}{n}$ ，把数据从小到大排序，如果某个人的钱低于该值，那么他一定是将钱全部支付，然后其余不够的其他人平摊。但是，由于之前那个人钱不够，那么就会导致剩下人支付的平均值会增大，所以在这个平摊过程中很有可能存在某个人钱又低于这个平均值，又需要剩下的人平摊。如此反复，直到支付完成。
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 5 * 10e5 + 10;
+
+int a[N];
+int n;
+long double s;
+
+int main() {
+    cin >> n >> s;
+    for (int i = 0; i < n; i++) scanf("%d", &a[i]);
+    
+    sort(a, a + n);
+    long double avg = s / n, res = 0;
+    
+    for (int i = 0; i < n; i++) {
+        double cur = s / (n - i);           // 算出当前每个的平均值
+        if (a[i] < cur) cur = a[i];         // 如果该人的钱不足平均值，则全交
+        res += (cur - avg) * (cur - avg);
+        s -= cur;                           // 总和减去交的值
+    }
+    printf("%.4Lf", sqrt(res / n));
+    
     return 0;
 }
 ```
