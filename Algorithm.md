@@ -2176,6 +2176,11 @@ for (int i = 1; i <= n; i++) {
 // 合并a和b所在的两个集合：
 p[find(a)] = find(b);
 d[find(a)] = distance; // 根据具体问题，初始化find(a)的偏移量
+
+// 在求a, b具体距离时候 需要用额外变量记录 find(a,b)
+int pa = find(a), pb = find(b);	
+if (pa == pb) cout << abs(d[a] - d[b]) << endl;
+// 如果直接 a、b = find(a、b) a、b变成相同的祖宗节点，距离变为0
 ```
 
 #### 例题：食物链
@@ -8749,28 +8754,89 @@ public:
             hash[inorder[i]] = i;
         return dfs(postorder, inorder, 0, n - 1, 0, n - 1);
     }
-    TreeNode* dfs(vector<int>& postorder, vector<int>& inorder, int pl, int pr, int il, int ir) {
+    TreeNode* dfs(vector<int>& inorder, vector<int>& postorder, int il, int ir, int pl, int pr) {
         if (pl > pr) return nullptr;
         auto root = new TreeNode(postorder[pr]);
         int k = hash[postorder[pr]]; // k 表示当前根结点在所给的中序遍历范围区间内的位置（分割左右子树）
         // 后序遍历根节点在最后一个
         
         // k是位置 k-il 是左子树的长度
-        auto left = dfs(postorder, inorder, pl, pl + k - il - 1, il, k - 1);
+        auto left = dfs(inorder, postorder, il, k - 1, pl, pl + k - il - 1);
         // 左树
-        // 后序 左节点为原来的pl，右节点为 pl + k - il - 1
         // 中序 左节点为原来的 il，右节点为根节点的前一个 k - 1 
+        // 后序 左节点为原来的 pl，右节点为 pl + k - il - 1	个数 k-il 下标等于左下标+个数-1
         
-        auto right = dfs(postorder, inorder, pl + k -il, pr - 1, k + 1, ir);
+        
+        auto right = dfs(inorder, postorder, k + 1, ir, pl + k - il, pr - 1);
         // 右子树
-        // 后序 左节点为左树右节点的下一个 pl + k - il，右节点为根节点前一个pr - 1
         // 中序 左节点为 k + 1,右节点为原来的 ir
+        // 后序 左节点为左树右节点的下一个 pl + k - il，右节点为根节点前一个pr - 1
 
         root->left = left, root->right = right;
         return root;
     }
 };
 ```
+
+
+
+### 3. 从前序和后序遍历构造二叉树
+
+[889. 根据前序和后序遍历构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-postorder-traversal/description/)
+
+注：前序遍历和后序遍历是没办法唯一确定一个二叉树的。
+
+区别于中序遍历的构造，中序遍历每次通过寻找根节点的位置来划分左右子树
+
+而没有中序遍历的构造，每次寻找的是左节点的位置，因此需要额外判断是否有左节点
+
+
+
+前序遍历的左边存储的是根节点，后续遍历的右边存储的是根节点。
+
+存储后续遍历的下标，每次建数找到左节点在后续遍历中的位置 k，得出左子树长度 $k - x + 1$
+
+新的左子树中：
+
+前序：左节点为 $a+1$，右节点为 $a+1+k-x+1-1=a+1+k-x$
+
+后续：左节点为 $x$，右节点 $k$
+
+新的右子树中：
+
+前序：左节点 $a+1+k-x+1$，右节点 $b$
+
+后续：左节点 $k+1$，右节点 $y-1$
+
+```c++
+class Solution {
+public:
+    unordered_map<int, int> h;
+    TreeNode* constructFromPrePost(vector<int>& pre, vector<int>& post) {
+        int n = pre.size();
+        for (int i = 0; i < post.size(); i++) h[post[i]] = i;
+        return dfs(pre, post, 0, n - 1, 0, n - 1);
+    }
+
+    TreeNode* dfs(vector<int> &pre, vector<int> &post, int a, int b, int x, int y) {
+        
+        if (a > b) return nullptr;
+        auto root = new TreeNode(pre[a]);
+        if (a == b) return root;    	// 因为下面要找左儿子 所以如果没子节点了 需要返回
+        int k = h[pre[a + 1]];       	// 找左儿子
+  
+        // 每次少根节点 
+        // 前序遍历的根节点在开头 故左子树从开头 +1 开始
+        // 后序遍历的根节点在结尾 故右子树由结尾 -1 结束
+        root->left = dfs(pre, post, a + 1, a + 1 + k - x, x, k);           
+        root->right = dfs(pre, post, a + 1 + k - x + 1, b, k + 1, y - 1);
+        
+        return root;
+    }
+};
+```
+
+
 
 
 
