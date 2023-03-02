@@ -2880,7 +2880,7 @@ sudo apt-get install tmux
 
 ```shell
 sudo groupadd docker						// 1. 创建docker组
-sudo usermod -aG docker $USER(你的用户名)	 // 2. 将您的用户添加到docker组中
+sudo usermod -aG docker $USER(你的用户名)	 // 2. 将您的用户添加到docker组中 $USER代表当前用户名
 ```
 
 安装sudo：

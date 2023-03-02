@@ -1500,3 +1500,37 @@ SELECT table_schema "Database Name"
 FROM information_schema.TABLES
 GROUP BY table_schema;
 ```
+
+
+
+docker安装
+
+```shell
+docker search mysql 			# 查看版本
+docker pull mysql				# 拉取镜像
+
+
+docker run -p 3306:3306 --name mysqlxx \
+-v /mydata/mysql/log:/var/log/mysql \		
+-v /mydata/mysql/data:/var/lib/mysql \
+-v /mydata/mysql/conf:/etc/mysql \
+-e MYSQL_ROOT_PASSWORD=root \
+-d mysql:latest
+
+#	docker run:在docker中启动一个容器实例
+#	-d:该容器在后台运行
+#	p 3306:3306：容器与主机映射端口为，主机3306，容器3306
+#	--name mysql:容器运行后的名称
+#	将容器/var/log/mysql目录下的数据，备份到主机的 /mysqldata/mysql/log目录下
+#	将容器/var/lib/mysql目录下的数据，备份到主机的 /mysqldata/mysql/data目录下
+#	将容器/etc/mysql目录下的数据，备份到主机的 mysqldata/mysql/conf目录下
+#	设置当前mysql实例的密码为root
+#	需要运行的容器名称以及版本号
+
+
+docker exec -it mysql bash		# 进入mysql容器操作台命令：
+mysql -u root -p				# 登录mysql命令
+```
+
+https://blog.csdn.net/qq_25482375/article/details/126250746
+
