@@ -106,14 +106,17 @@ void quick_sort(int q[], int l, int r) {
     if (l >= r) return; //判断边界
     //第一步：分成子问题  以j为划分时，x不能选q[r] (若以i为划分,则x不能选q[l])
     
+    int s = rand() % (r - l + 1) + l;       //随机生成left到right的整数
+    swap(q[l],q[s]);                  //随机更换key值避免最差情况
+    
     //以j为划分，x不能去取右边界；以i为划分，x不能取左边界
     int x = q[l + r >> 1];
     int i = l - 1, j = r + 1;//取分界点x i,j为两个指针
     //int i = l - 1, j = r + 1, x = q[l + r + 1 >> 1];//用i做模板
     
     while (i < j) {
-        do i ++ ; while (q[i] < x);//只要没到达，i向右探测
-        do j -- ; while (q[j] > x);//只要没到达，j向左探测
+        do i ++ ; while (q[i] < x);//只要没到达，i向右探测 找到第一个比中点大的
+        do j -- ; while (q[j] > x);//只要没到达，j向左探测 找到第一个比中点小的
         if (i < j) swap(q[i], q[j]);
     }
     //第二步：递归处理子问题
@@ -961,7 +964,7 @@ int main() {
     n & (n - 1) 可以每次把 n 中最后一个 1 置 0
 
     ```c++
-    while (n--) {
+    while (n) {
     	n &= (n - 1);
         res++;		// n中1的个数
     }
@@ -2731,28 +2734,22 @@ for (int i = 1; i <= n; i++) {
 
 变长数组，倍增的思想
 
-```
-size()  返回元素个数
-empty()  返回是否为空
-clear()  清空
-front()/back()
-push_back()/pop_back()
-begin()/end()
-[]
-支持比较运算，按字典序
-max_element()/min_element() 	返回最大/最小元素的迭代器
-*max_element()/*min_element()	返回最大/最小元素的值
-```
+- `vector<T> a, vector<T> a(n, x)`，初始化类型为T的数组(长度为n个x)
+- `a.empty() `，返回数组是否为空
+- `a.clear()`，清空数组元素
+- `a.front()/back()`，返回数组头/尾元素
+- `a.push_back()/pop_back()`，在数组末尾插入/删除元素
+- `max_element()/min_element() `，返回最大/最小元素的迭代器
+- `*max_element()/*min_element()`，返回最大/最小元素的值，传入起始迭代器
 
 
 
 ### 2. pair<int, int>
 
-```
-first, 第一个元素
-second, 第二个元素
-支持比较运算，以first为第一关键字，以second为第二关键字（字典序）
-```
+- `pair<T, Y> a;`，初始化类型为（T，Y）的pair对
+- `a.first`， 第一个元素
+- `b.second`，第二个元素
+- 支持比较运算，以 `first` 为第一关键字，以 `second` 为第二关键字（字典序）
 
 
 
@@ -2760,14 +2757,18 @@ second, 第二个元素
 
 字符串
 
-```
-size()/length()  返回字符串长度
-empty()
-clear()
-substr(起始下标，(子串长度))  返回子串
-c_str()  返回字符串所在字符数组的起始地址
-string.find(str,position) 找出字母或字符串在字符串中的位置（下标）
-```
+- `string str,  string str(n, 'x')`，初始化字符串，长度为n每个字符为x
+- `str.size(), str.length()`，返回字符串长度
+- `str.empty()`，判断字符串是否为空
+- `str.clear()`，清空字符串
+- `str.substr(起始下标，(子串长度))`，返回字串
+- `str.c_str()`，返回字符串所在字符数组的起始地址
+- `str.find("s", n(默认为0))`，寻找s在字符串下标n后的第一个出现位置,若不存在返回npos
+- `stot(string)`，string转成int，返回 int
+- `isdigit(char)`，判断字符是否是十进制数，返回 bool
+- `reverse(s,begin(), s.end()) `，反转字符串
+- `string::npos` ，npos是一个常数，表示size_t的最大值
+    许多容器都提供这个东西，用来表示不存在的位置,类型一般是std::container_type::size_type
 
 
 
@@ -2775,31 +2776,65 @@ string.find(str,position) 找出字母或字符串在字符串中的位置（下
 
 队列
 
-```
-size()
-empty()
-push()  	向队尾插入一个元素
-emplace()	插入一个元素，更节省内存更快
-front()  	返回队头元素
-back()  	返回队尾元素
-pop()  		弹出队头元素
-```
+- `queue<T> q`，初始化类型为T的队列
+- `q.size()`，返回队列长度
+- `a.empty() `，返回队列是否为空
+- `q.push(x)`，向队尾插入一个元素
+- `q.emplace()`，插入一个元素，更节省内存更快
+- `q.front()/back()`，返回队列头/尾元素
+- `q.pop()`，弹出队头元素
 
 
 
 ### 5. priority_queue
 
-优先队列，默认是大根堆
+优先队列，默认是大根堆，堆顶元素是最大值
 
-```
-size()
-empty()
-push()  	插入一个元素
-emplace()	插入一个元素，更节省内存更快
-top()  		返回堆顶元素
-pop()  		弹出堆顶元素
-定义成小根堆的方式：priority_queue<int, vector<int>, greater<int>> q;
-				或者插入负数
+- `priority_queue<T> heap`，定义类型为T的大根堆
+- `heap.push(x)`，插入一个元素
+- `heap.top()`，返回堆顶元素
+- `heap.pop()`，弹出堆顶元素
+- `priority_queue<int, vector<int>, greater<int>> q`，小根堆定义方式
+
+当堆类型是其他额外数据类型时候，定义大根堆要重写仿函数，或重载运算符。
+
+```c++
+// 仿函数
+struct Cmp {
+    bool operator() (ListNode* a, ListNode* b) {	// STL比较的时候使用的小括号运算符
+        return a->val > b->val;	// 大的数在前面，在堆里理解 大的在下面，所以小的在上面
+    }
+};
+priority_queue<Point, std::vector<ListNode*>, Cmp>heap; // 定义一个小根堆
+
+// 重载小于运算符
+struct Point {
+	int x, y;
+	Point(int _x = 0 , int _y = 0):x(_x) , y(_y){}
+	bool operator < (const Point& point)const {
+		return x > point.x;// 以横坐标大小为优先级
+	}
+};
+priority_queue<Point> heap	// 定义一个小根堆
+    
+ // lambda
+struct Point {
+	int x, y;
+	Point(int _x = 0 , int _y = 0):x(_x) , y(_y){}
+};
+auto Compare1 = [&](const Point& a, const Point& b)->bool {
+	return a.x < b.x;
+};
+auto Compare2 = [&](const Point& a, const Point& b)->bool {
+	return a.x > b.x;
+};
+// 大根堆
+priority_queue<Point, vector<Point>, decltype(Compare1)> heap1(Compare1);
+// 小根堆
+priority_queue<Point, vector<Point>, decltype(Compare2)> heap2(Compare2);
+
+// 在初始化priority_queue时，三个参数必须是类型名，而cmp是一个对象，因此必须通过decltype()来转为类型名
+// 因为lambda这种特殊的class没有默认构造函数，heap1内部排序比较的时候要使用的是一个实例化的lambda对象，只能通过lambda的 copy构造进行实例化，从哪里copy呢，就需要pq构造函数的时候传入这个lambda对象
 ```
 
 
@@ -2808,13 +2843,11 @@ pop()  		弹出堆顶元素
 
 栈
 
-```
-size()
-empty()
-push()  向栈顶插入一个元素
-top()  返回栈顶元素
-pop()  弹出栈顶元素
-```
+- `stack<T> stk;`，初始化类型为T的栈
+- `stk.empty()`，判断栈是否为空
+- `stk.push(x)`，向栈顶插入一个元素
+- `stk.top()`，返回栈顶元素
+- `stk.pop()`，弹出栈顶元素
 
 
 
@@ -2822,18 +2855,23 @@ pop()  弹出栈顶元素
 
 双端队列		//效率最低
 
-```
-size()
-empty()
-clear()
-front()/back()
-push_back()/pop_back()
-push_front()/pop_front()
-begin()/end()
-[]
-```
+- `deque<T> q;`，初始化类型为T的双端队列
 
+- `q.size()`，返回队列长度
 
+- `a.empty() `，返回队列是否为空
+
+- `q.front()/back()`，返回队列头/尾元素
+
+- `q.push_back(x)/q.pop_back()`，插入/弹出队尾元素
+
+- `q.push_front(x)/q.pop_front()`，插入/弹出对头元素
+
+- `q.begin()/q.end()`，迭代器
+
+- `[]`，支持下标取值
+
+    
 
 ### 8. set, map, multiset, multimap
 
@@ -2902,19 +2940,6 @@ flip(k) 把第k位取反
 
 
 ### 11. stirng
-
-```
-find("s", n(默认为0))    寻找s在字符串下标n后的第一个出现位置,若不存在返回npos
-substr()	
-stot(string)	string转成int		 int
-isdigit(char)	判断字符是否是十进制数 bool
-reverse(s,begin(), s.end()) 
-
-string::npos    是npos是一个常数，表示size_t的最大值
-许多容器都提供这个东西，用来表示不存在的位置,类型一般是std::container_type::size_type
-```
-
-
 
 ## 10. Algorithm
 
@@ -3557,7 +3582,7 @@ while (q.size()) {
 vector<Edge> h[N];	// 存储图
 int dist[N];		// 记录距离
 
-void dfs(int u, int father, int distance) {
+void dfs(int u, int father, int distance) {			// father避免往回走
     dist[u] = distance;
 
     for (auto node : h[u])
@@ -3646,6 +3671,9 @@ bool topsort() {
 //插入数据时候要更新入度
 	add(a, b);
 	d[b]++;
+
+// 队列顺序是有向无环图的顺序
+for (int i = 0; i < n; i++) printf("%d ", q[i])
 ```
 
 ```c++
@@ -3671,6 +3699,7 @@ bool topsort() {
     else return 1;
 
 }
+for (int i = 0; i < n; i++) printf("%d ", top[i])
 ```
 
 
@@ -3716,7 +3745,7 @@ bool topsort() {
 
 
 
-**Dijkstra-朴素 O(n^2)**
+**Dijkstra-朴素 $O(n^2)$**
 
 1. 初始化距离数组, dist[1] = 0, dist[i] = inf;
 
@@ -3831,7 +3860,7 @@ int dijkstra() {
 
 ### 2. 堆优化版Dijkstra算法（稀疏图）
 
-**时间复杂度O(mlogn)**
+**时间复杂度$O(mlogn)$**
 
 **算法思路：**
 
@@ -4111,7 +4140,7 @@ bool spfa() {
 
 
 
-**时间复杂度是 O(n^3) , n 表示点数**
+**时间复杂度是 $O(n^3)$ , n 表示点数**
 
 基于动态规划
 
@@ -4189,7 +4218,7 @@ void floyd() {
 
 ### 1. Prim算法
 
-**时间复杂度是 O(n^2+m)，n 表示点数，m 表示边数**
+**时间复杂度是 $O(n^2+m)$，n 表示点数，m 表示边数**
 
 **算法思路：**
 
@@ -4717,7 +4746,7 @@ N件物品，每件物品分别有S个，容量为V的背包。每件物品能�
 
 ```c++
 for (int i = 1; i <= n; i++)
-	for (int j = 1; j <= m; j++) 
+	for (int j = 1; j <= m; j++) 	// 一般可以从 1 开始
 		for (int k = 0; k <= s[i] && k * v[i] <= j; k++)
 			f[i][j] = max(f[i][j], f[i - 1][j - v[i] * k] + w[i] * k);
 
@@ -5369,7 +5398,7 @@ if (j >= i)
 
 
 
-#### 2. 完全背包解法 O(n^3)
+#### 2. 完全背包解法 $O(n^3)$
 
 ```C++
 f[0][0] = 1;	// 一个数都不选是一种方案
@@ -5381,7 +5410,7 @@ for(int i = 1; i <= n; i++)
 
 
 
-#### 3. 二维优化 + 一维O(n^2)
+#### 3. 二维优化 + 一维$O(n^2)$
 
 ```c++
 for (int i = 0; i <= n; i ++) 
@@ -5858,7 +5887,7 @@ void add(int a, int b) {
 void dfs(int u) {
     f[u][0] = 0;	// 初始的高兴度
     f[u][1] = w[u];	// 1代表这个boss要来，先加上他来的利益
-    for (int i = h[u]; i != -1; ne[i]) {	// 遍历树
+    for (int i = h[u]; i != -1; i = ne[i]) {	// 遍历树
     	int j = e[i];
         dfs(j);		// 回溯
         f[u][0] += max(f[j][1],f[j][0]);

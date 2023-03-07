@@ -1022,3 +1022,80 @@ public:
 
 
 
+## 23. 合并K个升序链表
+
+前置题，合并两个有序链表
+
+**优先队列**
+
+使用优先队列把每个链的头节点排序，定义虚拟头节点 `dummy`，和移动指针 `tail`
+
+每次更新取最短的，修改指向 `tail->next = t`，往后移动指针 `tail = tail->next`
+
+并把该点的下一个节点插入堆中 `if (t->next) heap.push(t->next);`，重复过程
+
+```c++
+class Solution {
+public:
+    struct Cmp {
+        bool operator() (ListNode* a, ListNode* b) {
+            return a->val > b->val;
+        }
+    };
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        priority_queue<ListNode*, vector<ListNode*>, Cmp> heap; // 节点的值排序
+        auto dummy = new ListNode(-1), tail = dummy;   // dummy虚拟头节点，tail移动的节点
+        for (auto l: lists) if (l) heap.push(l);    // 把每个链表的头节点插入
+
+        while (heap.size()) {
+            auto t = heap.top();
+            heap.pop();
+            tail = tail->next = t; // 两步，第一步修改节点指向，第二步移动节点
+            if (t->next) heap.push(t->next);
+        }
+        return dummy->next;
+    }
+```
+
+
+
+**分治合并**
+
+- 将 $k$ 个链表配对并将同一对中的链表合并
+- 第一轮合并后，$k$ 个链表被合并成 $\frac{k}{2}$，平均长度为 $\frac{2n}{k}$，然后是 $\frac{k}{4}$...
+- 重复这一个过程
+
+```c++
+class Solution {
+public:
+    ListNode* mergetwo(ListNode* l1, ListNode* l2) {
+        ListNode *dummy = new ListNode(0);
+        ListNode *cur = dummy;
+        while (l1 && l2) {
+            if (l1->val < l2->val) {
+                cur->next = l1;
+                l1 = l1->next;
+            } else {
+                cur->next = l2;
+                l2 = l2->next;
+            }
+            cur = cur->next;
+        }
+        cur->next = (l1 != NULL ? l1 : l2);
+        return dummy->next;       
+    }
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        int n = lists.size();
+        if (n == 0) return NULL;
+        if (n == 1) return lists[0];
+
+        int mid = n / 2;
+        vector<ListNode*> left = vector<ListNode*>(lists.begin(), lists.begin() + mid);
+        vector<ListNode*> right = vector<ListNode*>(lists.begin() + mid, lists.end());
+        ListNode* l1 = mergeKLists(left);
+        ListNode* l2 = mergeKLists(right);
+        return mergetwo(l1, l2);
+    }
+};
+```
+

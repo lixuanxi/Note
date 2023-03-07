@@ -31,9 +31,9 @@ C++语言未定义任何输入输出语句，而是使用标准库（standard li
 
     结束符默认是换行符 ==`\n`==
 
-- 当同时使用 `cin>>, getline()` 时，需要注意的是，在 `cin>>` 读入数据完成之后，如果接下来的字符是换行符，那么在使用 `getline()` 之前需要用 ==`getchar()/cin.get()/cin.ignore() `== 把换行符吞掉，然后在使用 `getlint()` 读入下一行数据。
+- 当同时使用 `cin>>, getline()` 时，需要注意的是，在 `cin>>` 读入数据完成之后，如果接下来的字符是换行符，那么在使用 `getline()` 之前需要用 ==`getchar()/cin.get()/cin.ignore() `== 把换行符吞掉，然后在使用 `getline()` 读入下一行数据。
 
-    否则，`getlint()`会首先读入换行符，然后停止读取，最终导致最后读入的数据为空。
+    否则，`getline()`会首先读入换行符，然后停止读取，最终导致最后读入的数据为空。
 
 
 
@@ -227,6 +227,7 @@ while (getline(cin, input)) {  //读取一行
 	int num = 0, sum = 0;
 	while (data >> num) 
 		sum += num;
+}
 ```
 
 
