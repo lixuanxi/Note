@@ -70,7 +70,7 @@ C++语法：
 #include<iostream>
 using namespace std;
 int main() {
-    int a ,b;
+    int a, b;
     cin>>a>>b;
     cout<<a+b<<endl;
     return 0;
@@ -412,9 +412,37 @@ for (int i=1;i<=n;i++) {
 
 
 
-### 11. printf
+### 11. scanf
 
+```c++
+scanf("%d", &a);		// 读取一个整型
+scanf("%lld", &a);		// 读取长整型，用%d可能出错
+scanf("%c", &a);		// 读取char字符
+scanf("%s", &a);		// 读取char数组
 ```
+
+当同时读入char字符和int整型时，需要用字符串数组吃掉空格回车
+
+```c++
+char op[3];
+scanf("%s%d",op, &a);//这样用字符数组来读取一个字符，则会跳过空格，回车等符号
+char op;
+scanf("%c",&op)//这样读入则不会忽略空格，回车等符号
+scanf("%")
+```
+
+在读取 n*m 的字符数组时候，只需要按行读入，如果按个读入会吃掉数组中的回车符
+
+```c++
+for(int i = 0; i < n; i++)
+    scanf("%s",m[i]);
+```
+
+
+
+### 12. printf
+
+```c++
 int printf(const char *format, ...)
 ```
 
