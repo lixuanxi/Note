@@ -44,6 +44,10 @@
 
 上取整：$\lceil\frac{a}{b}\rceil = \frac{a + b - 1}{b}$
 
+四舍五入：$round(x)$
+
+第一个比 $n$ 大能整除 $k$：$(n + k) - n \ \%\  k$
+
 负数取模的负数，需要正数：$a\bmod{b} = (a \%{b}+b)\%{b}$
 
 
@@ -406,6 +410,8 @@ int main() {
 
 ## 4. 高精度
 
+一般用于题目的数据比 `long long` 还大的情况
+
 1. **高精度加法**
 
    用数组储存数，由个位开始储存，个位对应数组下标0
@@ -637,6 +643,8 @@ cout << s[r] ^ s[l - 1] << endl;
 
 
 ## 6. **差分**
+
+当需要对区间 `[l, r]` 加减的时候，可以使用差分控制到 $O(1)$
 
 ### 1. 一维差分
 
@@ -1137,7 +1145,7 @@ void merge(vector<PII> &segs) {
         } 
         else ed = max(ed, seg.second);	//当前区间和维护区间有交集 更新区间右端点
     }
-    if (st != -2e9) res.push_back({st, ed});		//输入区间集为空时 插入一个 
+    if (st != -2e9) res.push_back({st, ed});		//合并最后一个区间
 	//循环结束时的st,ed变量，此时的st,ed变量不需要继续维护，只需要放进res数组即可。
     segs = res;
 }
@@ -1494,7 +1502,7 @@ int main() {
     for (int i = 0; i < n; i++) cin >> a[i];
  	
     int hh = 0, tt = -1;
-	//滑动窗口中的最小值
+	//滑动窗口中的最小值		滑窗如果是维护最小值，则序列是单调上升的
 	for (int i = 0; i < n; i++) {
     	/*
     	维持滑动窗口的大小
@@ -1515,10 +1523,10 @@ int main() {
 	}
     
 	int hh = 0, tt = -1;
-	//滑动窗口中的最大值
+	//滑动窗口中的最大值		滑窗如果是维护最大值，则序列是单调下降的
 	for (int i = 0; i < n; i++) {
     	if(hh <= tt && i - q[hh] + 1 > k) hh++;
-    	while(hh <= tt && a[i] >= a[q[tt]]) tt--;
+    	while(hh <= tt && a[i] >= a[q[tt]]) tt--;	//比你晚出生还比你大(等），踢出旧元素
     	q[++tt] = i;
     	if(i + 1 >= k) cout << a[q[hh]] << ' ';
 	}
@@ -2939,7 +2947,7 @@ flip(k) 把第k位取反
 
 
 
-### 11. stirng
+
 
 ## 10. Algorithm
 
@@ -2960,6 +2968,17 @@ merge合并的两个容器必须的有序序列
 #### 3. reverse(beg, end)
 
 反转指定范围的元素
+
+#### 4. unique(beg, end)
+
+将容器内的重复元素移到数组的后面，返回不重复区间的 end 迭代器
+
+通常与 sort 以及 erase 一起使用，先排序，后删除重复元素。
+
+```c++
+//sort(a.begin(),a.end());
+//a.erase(unique(a.begin(), a.end()), a.end());
+```
 
 
 
@@ -3084,35 +3103,40 @@ void dfs(int u) {
 dfs(0);	// 在path[0]处开始填数
 ```
 
-如果有重复元素的存在，需要额外判断信息：
+如果有重复元素的存在，首先需要排序，另外需要额外判断信息：
 
 对于相同数，我们人为定序，就可以避免重复计算：我们在dfs时记录一个额外的状态，记录上一个相同数存放的位置 start，我们在枚举当前数时，只枚举 `start+1,start+2,…,start+1,start+2,…,n` 这些位置。
 
 ```c++
 // 两种写法
 // 第一种记录额外状态
-if (!st[i]) {
-    st[i] = true;
-    path[i] = nums[u];
-    // 下一个数和当前摆放的数不同，可以选择任意位置；如果相同，必须摆放在该数后面
-    if (u + 1 < nums.size() && nums[u + 1] != nums[u]) 
-		dfs(nums, u + 1, 0);
-  	else 
-		dfs(nums, u + 1, i + 1);    
-        // 对于相同的数，只用第一个没有用过的！！！
-        // 所以下一次遍历从 i+1 开始选 这样就能按顺序用
-    t[i] = false;
-}
-// 第二种根据排序后的性质
-if (!st[i]) {
-    if (i && nums[i - 1] == nums[i] && !st[i - 1]) continue;
-    // 前一个数也是皇子,即当前不是第一个没有被用过的数,相同的前几个数没有被用过则跳过
-    st[i] = true;
-    path[u] = nums[i];
-    dfs(nums, u + 1);
-    st[i] = false;
+void dfs(vector<int>& nums, int u, int start) ...
+for (int i = start; i < nums.size(); i ++ ) {
+    if (!st[i]) {
+        st[i] = true;
+    	path[i] = nums[u];
+        	// 下一个数和当前摆放的数不同，可以选择任意位置；如果相同，必须摆放在该数后面
+    	if (u + 1 < nums.size() && nums[u + 1] != nums[u]) 
+			dfs(nums, u + 1, 0);
+  		else 
+			dfs(nums, u + 1, i + 1);    
+        	// 对于相同的数，只用第一个没有用过的！！！
+        	// 所以下一次遍历从 i+1 开始选 这样就能按顺序用
+        st[i] = false;
+    }
 }
 
+// 第二种根据排序后的性质
+for (int i = 0; i < nums.size(); i ++ ) {
+    if (!st[i]) {
+    	if (i && nums[i - 1] == nums[i] && !st[i - 1]) continue;
+    	// 前一个数也是皇子,即当前不是第一个没有被用过的数,相同的前几个数没有被用过则跳过
+    	st[i] = true;
+    	path[u] = nums[i];
+    	dfs(nums, u + 1);
+    	st[i] = false;
+	}
+}
 ```
 
 
@@ -4484,6 +4508,70 @@ for (int i = 1; i <= n1; i ++ ) {
 
 
 
+## 6. 最近公共祖先
+
+### LCA算法(朴素版)
+
+基本思想为先把两个结点调整到同一深度， 然后同时往上走， 直到两个结点相等。
+要完成这些， 除了记录左右儿子， 还要记录父节点以及各结点深度
+
+时间复杂度：
+
+- 遍历树获取深度 $O(n)$
+- 获取祖先 $O(logn)$
+
+```c++
+int d[N], p[N]; 	// d保存节点深度,p记录节点父节点
+// 计算深度
+void dfs(int u, int father) {	// dfs(1, 0) d[0] = -1 p[1] = 0
+    p[u] = father; 
+    d[u] = d[father] + 1;
+    for (int i = h[u]; i != -1; i = ne[i]) {
+        int j = e[i];
+        if (j == father) continue;
+        dfs(j, u);
+    }
+}
+// 如果边权为1,可以直接记录深度，有向图可以忽略父节点
+void dfs(int u, int depth) {	// dfs(1, 0)
+    d[u] = depth;
+    for (int i = h[u]; i != -1; i = ne[i]) {
+        int j = e[i];
+        dfs(j, depth + 1);
+    }
+}
+void bfs(int u, int depth) {	// bfs(1, 0);
+    queue<int> q;
+    q.push(u);
+    while (q.size()) {
+        int n = q.size();
+        for (int i = 0; i < n; i++) {
+            int t = q.front();
+            q.pop();
+            d[t] = depth;
+            for (int j = h[t]; j != -1; j = ne[j]) {
+                int k = e[j];
+                q.push(k);
+            }   
+        }
+        depth += 1;
+    }
+}
+
+// 返回最近公共祖先
+int lca(int a, int b) {
+    if (d[a] < d[b]) return lca(b, a);
+    while (d[a] > d[b]) a = p[a];
+    while (a != b) a = p[a], b = p[b];
+    return a;
+}
+// 求两点距离
+int get(int a, int b) {
+    int c = lca(a, b);
+	return d[a] + d[b] - 2 * d[c];
+}
+```
+
 
 
 ------
@@ -4759,7 +4847,7 @@ for (int i = 1; i <= n; i++)
 
 
 
-#### 2. 二进制优化 + 01背包
+#### 3. 二进制优化 + 01背包
 
 将多重背包问题转化成01背包问题 **时间复杂度o(NVlogs)**
 
@@ -4813,6 +4901,23 @@ int main() {
     return 0;
 }
 
+```
+
+##### 推荐写法
+
+```c++
+	int v[N], w[N], s[N]; // 物品的体积，价值，数量
+    for (int i = 1; i <= n; i++) {
+        for (int k = 1; k <= s[i]; k *= 2) {   // 二进制枚举 1 2 4 ... 64可以凑出0-128所有数
+            for (int j = m; j >= k * v[i]; j--) 
+                f[j] = max(f[j], f[j - k * v[i]] + k * w[i]);
+            s[i] -= k;
+        }
+        if (s[i]) {		// 剩余的按照01背包解决
+            for (int j = m; j >= s[i] * v[i]; j--) 
+                f[j] = max(f[j], f[j - s[i] * v[i]] + s[i] * w[i]);
+        }
+    }
 ```
 
 
@@ -6160,7 +6265,7 @@ int main() {
 
 ### 3. 区间分组
 
-有若干个活动，第i个活动开始时间和结束时间是[Si,fi]，同一个教室安排的活动之间不能交叠，求要安排所有活动，少需要几个教室？
+有若干个活动，第i个活动开始时间和结束时间是[Si,Fi]，同一个教室安排的活动之间不能交叠，求要安排所有活动，少需要几个教室？
 
 有时间冲突的活动不能安排在同一间教室，与该问题的限制条件相同，即最小需要的教室个数即为该题答案。
 
@@ -6226,7 +6331,7 @@ int main() {
     priority_queue<int, vector<int>, greater<int>> heap;
 
     for (int i = 0; i < n; i++) {
-        if(heap.empty() || heap.top() >= range[i].l) heap.push(range[i].r);
+        if (heap.empty() || heap.top() >= range[i].l) heap.push(range[i].r);
         else {
             int t = heap.top();
             heap.pop();
@@ -10067,5 +10172,84 @@ public:
         return NULL;
     }
 };
+```
+
+
+
+# 第九章 高级数据结构
+
+## 1. 树状数组
+
+引入问题
+给出一个长度为 $n$ 的数组，完成以下两种操作：
+
+1. 将第 $i$ 个数加上 $k$
+
+2. 输出区间 $[i,j]$ 内每个数的和
+
+朴素算法
+
+- 单点修改：$O(1)$
+
+- 区间查询：$O(n)$
+
+使用树状数组
+
+- 单点修改：$O(logn)$
+
+- 区间查询：$O(logn)$
+
+**树状数组思想**
+
+基于二进制，树状数组的本质思想是使用树结构维护”前缀和”，从而把时间复杂度降为 $O(logn)$
+
+对于一个序列，对其建立如下的树形结构：
+
+![树状数组](https://gitee.com/lxxdao/image/raw/master/Algorithm/9.1%E6%A0%91%E7%8A%B6%E6%95%B0%E7%BB%84.png)
+
+1. 每个结点 t[x] 保存以 x 为根的子树中叶结点值的和
+2. 每个结点覆盖的长度为 lowbit(x)
+3. t[x] 结点的父结点为 t[x + lowbit(x)]
+4. 树的深度为 $log2n+1$
+
+**树状数组操作**
+
+- add(x, k) 表示将序列中第 x 个数加上k。
+
+    ![添加操作](https://gitee.com/lxxdao/image/raw/master/Algorithm/9.1.1%E6%A0%91%E7%8A%B6%E6%95%B0%E7%BB%84%E6%B7%BB%E5%8A%A0.png)
+
+    ```c++
+    void add(int x, int k) {
+        for(int i = x; i <= n; i += lowbit(i))
+            t[i] += k;
+    }
+    ```
+
+- sum(x) 表示将查询序列前 x 个数的和
+
+    ![查询操作](https://gitee.com/lxxdao/image/raw/master/Algorithm/9.1.2%E6%A0%91%E7%8A%B6%E6%95%B0%E7%BB%84%E6%9F%A5%E8%AF%A2.png)
+    
+    ```c++
+    int sum(int x) {
+        int sum = 0;
+        for(int i = x; i; i -= lowbit(i))
+            sum += t[i];
+        return sum;
+    }
+    ```
+
+```c++
+int t[N];
+int lowbit(int x) {
+	return x & -x;
+}
+void add(int x, int k) {
+    for (int i = x; i <= n; i += lowbit(i)) t[i] += k;
+}
+int sum(int x) {
+    int sum = 0;
+    for(int i = x; i; i -= lowbit(i)) sum += t[i];
+    return sum;
+}
 ```
 

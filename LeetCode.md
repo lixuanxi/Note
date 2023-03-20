@@ -1099,3 +1099,108 @@ public:
 };
 ```
 
+
+
+## 24.  两两交换链表中的节点
+
+**模拟$O(n)$**
+
+步骤：
+
+1. 添加虚拟头结点 hair。
+2. 定义 cur 指针初始指向 hair。
+3. 确保后两个点存在，first, second
+4. 每次两两交换当前指针的后两个点
+5. 交换后 first 在 second 前面
+6. 将 cur 指向修改后的 first，接着从第 3 步循环。
+
+```c++
+class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        ListNode* dummy = new ListNode(0);
+        dummy->next = head;
+        auto cur = dummy;
+        while (cur->next && cur->next->next) {
+            auto tmp1 = cur->next;
+            auto tmp2 = cur->next->next;
+            cur->next = tmp2;
+            tmp1->next = tmp2->next;
+            tmp2->next = tmp1;
+            cur = tmp1;
+        }
+        return dummy->next;
+    }
+};
+```
+
+
+
+## 25. K 个一组翻转链表
+
+**模拟**
+
+步骤：
+
+1. 增加虚拟头结点 dummy，并且令 p 指针指向 dummy。
+2. 循环记录 q 判断是否够 k 个节点，如果够此时 q 指向第 k 个节点
+3. 令 `p1，p2` 分别指向翻转链表的第一和第二个
+4. 翻转其中的链表，循环退出时 `p1` 为最后一个元素 `p2` 为下一组的第一个元素
+5.  p->next 为第一个元素，翻转后为最后一个，即下一轮翻转的第 0 个，记录 p->next 为 c
+6. 修改外部指向，p 指向 `p1`(最后翻转成第一)，c 指向 `p2` (第0指向第一)
+7. 移动指针进行下一轮，p = c
+
+```c++
+class Solution {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        auto dummy = new ListNode(-1);
+        dummy->next = head;         // 虚拟头
+        for (auto p = dummy;;) {    // p 第0个
+            auto q = p;             // 找k个节点
+            for (int i = 0; i < k && q; i++) q = q->next;
+            if (!q) break;      // 如果够，q指向第k个
+            auto p1 = p->next, p2 = p1->next;  // a指向第一个、b指向第二个
+            while (p1 != q) {
+                auto temp = p2->next;
+                p2->next = p1;
+                p1 = p2;
+                p2 = temp;
+            }
+
+            // 退出循环时候 p1 为最后一个元素 p2为下一组的第一个元素 
+            // 此时组内元素翻转，p1翻转后为第一个元素
+
+            auto c = p->next;       // 第一个元素，翻转后为最后一个元素
+            p->next = p1, c->next = p2; // p1为第一个元素，最后一个元素指向下一个第一个
+            p = c;                  // 修改指针指向，循环下一步
+        }
+        return dummy->next;
+    }
+};
+```
+
+如果面试官要求，最后不足 k 个也要翻转，则需要额外判断
+
+```c++
+if (!q) {
+  	reverse(p);	// p是虚拟头
+  	break; 
+}		
+
+void reverse(ListNode* p) {
+	ListNode* p1 = p->next;
+    ListNode* p2 = p1->next;
+    while (p2) {
+        auto temp = p2->next;
+        p2->next = p1;
+        p1 = p2;
+        p2 = temp;
+    }
+    auto c = p->next;
+    p->next = p1, c->next = p2;
+}
+```
+
+
+
