@@ -32,11 +32,11 @@
 
 1 KB = 1024 Byte
 
-1 MB = 1024 * 1024 Byte
+1 MB = 1024 * 1024 Byte （能开65535个int）
 
-1 GB = 1024 * 1024 * 1024 Byte
+1 GB = 1024 * 1024 * 1024 Byte 
 
-64 MB = 2 ^ 26(1024 = 2^10 10+10+6) Byte    2^24 / 4   int 4 Byte, char 1 Byte, double / long long 8 Byte
+64 MB = $2^{26}$(1024 = 2^10 10+10+6) Byte    2^24 个int   int 4 Byte, char 1 Byte, double / long long 8 Byte
 
 
 
@@ -2807,7 +2807,7 @@ for (int i = 1; i <= n; i++) {
 当堆类型是其他额外数据类型时候，定义大根堆要重写仿函数，或重载运算符。
 
 ```c++
-// 仿函数
+// 仿函数			仿函数本质是就是重载()运算符
 struct Cmp {
     bool operator() (ListNode* a, ListNode* b) {	// STL比较的时候使用的小括号运算符
         return a->val > b->val;	// 大的数在前面，在堆里理解 大的在下面，所以小的在上面
@@ -2819,6 +2819,7 @@ priority_queue<Point, std::vector<ListNode*>, Cmp>heap; // 定义一个小根堆
 struct Point {
 	int x, y;
 	Point(int _x = 0 , int _y = 0):x(_x) , y(_y){}
+    /* 注意点：这里的 const 不可少编译约束 */
 	bool operator < (const Point& point)const {
 		return x > point.x;// 以横坐标大小为优先级
 	}

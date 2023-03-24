@@ -3143,3 +3143,1089 @@ int main() {
 }
 ```
 
+
+
+## 双端队列广搜
+
+边权只有两种 0 或 1 的最短路问题，使用双端队列。
+
+每次从队列取出队头后，根据从队头到扩展出来的元素的边的值来选择插入方向。
+
+是 0 插入队头，是 1 插入队尾。
+
+#### [175. 电路维修](https://www.acwing.com/problem/content/177/)
+
+注意，在初始化距离的时候，不能用 -1，因为存在 0 和 1 的边权，所以仿照 dijkstra 把距离初始化为正无穷
+
+每次判断新的距离与旧距离的大小，把距离小的根据是 0 还是 1，插入队列的头或尾
+
+```c++
+#include <bits/stdc++.h>
+
+#define x first
+#define y second
+
+using namespace std;
+
+typedef pair<int, int> PII;
+
+const int N = 510;
+
+
+int t, n, m;
+char g[N][N];
+int dist[N][N];
+bool st[N][N];
+
+// 下一个坐标的位置 左上 右上 右下 左下
+int dx[4] = {-1, -1, 1, 1}, dy[4] = {-1, 1, 1, -1};
+int ix[4] = {-1, -1, 0, 0}, iy[4] = {-1, 0, 0, -1};
+// 坐标和图标的关系 
+// (1, 1) 四个角的坐标分别是 (0,0),(0,1),(1,1),(1,0)
+
+int bfs() { 
+    memset(dist, 0x3f, sizeof dist);    // 因为有负权，每个点可能用多次，初始化无穷
+    memset(st, 0, sizeof st);           // 参考dijkstar
+    dist[0][0] = 0;
+    deque<PII> q;
+    q.push_back({0, 0});
+    char cs[] = "\\/\\/";   // \需要转义符\\  
+    // 左上 右上 右下 左下 \ / \ / 
+    while (q.size()) {
+        auto t = q.front();
+        q.pop_front();
+        if (st[t.x][t.y]) continue;
+        st[t.x][t.y] = true;
+        for (int i = 0; i < 4; i++) {
+            int a = t.x + dx[i], b = t.y + dy[i];   // 下一个点的坐标
+            if (a < 0 || a > n || b < 0 || b > m) continue;     // 实际会多一个
+            int ca = t.x + ix[i], cb = t.y + iy[i]; // 图标的下标
+            int d = dist[t.x][t.y] + (g[ca][cb] != cs[i]);  // 如果图标不等，则+1
+            if (d < dist[a][b]) {
+                dist[a][b] = d;
+                if (g[ca][cb] != cs[i]) q.push_back({a, b});
+                else q.push_front({a, b});
+            }
+        }
+    }
+    return dist[n][m];
+}
+
+int main() {
+    cin >> t;
+    while (t--) {
+        cin >> n >> m;
+        for (int i = 0; i < n; i++) cin >> g[i];
+        
+        if (n + m & 1) puts("NO SOLUTION");
+        else {
+            int t = bfs();
+            if (t == 0x3f3f3f3f) puts("NO SOLUTION");
+            else printf("%d\n", t);
+        }
+        
+    }
+    
+    return 0;
+}
+```
+
+
+
+## 双向广搜
+
+双向广搜是 BFS 的优化方式，一般用在最小步数模型上
+
+在搜索的时候，从两个方向一起搜索，从数量上比较少的队列一方进行扩展，每次得扩展一层
+
+```c++
+#include <bits/stdc++.h>
+using namespace std;
+
+const int N = 6;
+
+int n;
+string A, B;
+string a[N], b[N];
+
+int extend(queue<string>& q, unordered_map<string, int>&da, unordered_map<string, int>& db, 
+    string a[N], string b[N]) {
+    int d = da[q.front()];
+    while (q.size() && da[q.front()] == d) {
+        auto t = q.front();
+        q.pop();
+
+        for (int i = 0; i < n; i ++ )
+            for (int j = 0; j < t.size(); j ++ )
+                if (t.substr(j, a[i].size()) == a[i]) {
+                    string r = t.substr(0, j) + b[i] + t.substr(j + a[i].size());
+                    if (db.count(r)) return da[t] + db[r] + 1;
+                    if (da.count(r)) continue;
+                    da[r] = da[t] + 1;
+                    q.push(r);
+                }
+    }
+
+    return 11;
+}
+
+int bfs()
+{
+    if (A == B) return 0;
+    queue<string> qa, qb;
+    unordered_map<string, int> da, db;
+
+    qa.push(A), qb.push(B);
+    da[A] = db[B] = 0;
+
+    int step = 0;
+    while (qa.size() && qb.size()) {
+        int t;
+        if (qa.size() < qb.size()) t = extend(qa, da, db, a, b);
+        else t = extend(qb, db, da, b, a);
+
+        if (t <= 10) return t;
+        if ( ++ step == 10) return -1;
+    }
+
+    return -1;
+}
+
+int main(){
+    cin >> A >> B;
+    while (cin >> a[n] >> b[n]) n ++ ;
+
+    int t = bfs();
+    if (t == -1) puts("NO ANSWER!");
+    else cout << t << endl;
+
+    return 0;
+}
+```
+
+
+
+## DFS之连通性模型
+
+注意搜索问题分两类：
+
+**第一类：内部搜索**
+
+所有点是在棋盘内部，某个点到另外一个点，需要保证每个点搜索一次，不需要恢复现场
+
+例如：连通性问题
+
+**第二类：外部搜索**
+
+整个棋盘为一种状态，将状态变成另一状态，在另一个分支的时候，需要恢复现场，保证状态一样
+
+例如：全排列，八皇后问题
+
+#### [AcWing 1112. 迷宫](https://www.acwing.com/activity/content/problem/content/1480/)
+
+采用迷宫问题的思路，起点开始从四个方向一直往下走DFS，走到终点返回 true
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 105;
+
+int k, n;
+char g[N][N];
+int ha, la, hb, lb;
+int dx[4] = {-1, 0, 1, 0}, dy[4] = {0, 1, 0, -1};
+bool st[N][N];
+
+bool dfs(int x, int y) {
+    if (g[x][y] == '#') return false;		// 判断起点是否是障碍物
+    if (x == hb && y == lb) return true;
+    st[x][y] = true;
+    for (int i = 0; i < 4; i++) {
+        int a = x + dx[i], b = y + dy[i];
+        if (a < 0 || a >= n || b < 0 || b >= n) continue;
+        if (st[a][b]) continue;
+        if (dfs(a, b)) return true;
+    }
+    return false;
+}
+
+int main() {
+    cin >> k;
+    while (k--) {
+        cin >> n;
+        for (int i = 0; i < n; i++) cin >> g[i];
+        cin >> ha >> la >> hb >> lb;
+        memset(st, 0, sizeof st);
+        bool can;
+        can = dfs(ha, la);
+        if (can) puts("YES");
+        else puts("NO");
+    }
+    return 0;
+}
+```
+
+
+
+#### [1113. 红与黑](https://www.acwing.com/problem/content/1115/)
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 25;
+
+int n, m;
+char g[N][N];
+bool st[N][N];
+
+int dx[4] = {-1, 0, 1, 0}, dy[4] = {0, 1, 0, -1};
+int dfs(int x, int y) {
+    int cnt = 1;
+    st[x][y] = true;
+    for (int i = 0; i < 4; i++) {
+        int a = x + dx[i], b = y + dy[i];
+        if (a < 0 || a >= n || b < 0 || b >= m) continue;
+        if (g[a][b] != '.') continue;
+        if (st[a][b]) continue;
+        cnt += (dfs(a, b));
+    }
+    return cnt;
+}
+int main() {
+    while (cin >> m >> n, n || m) {
+        memset(st, 0, sizeof st);
+        for (int i = 0; i < n; i++) cin >> g[i];
+        
+        int x, y;
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < m; j++) {
+                if (g[i][j] == '@') {
+                    x = i, y = j;
+                }
+            }
+
+        cout << dfs(x, y) << endl;
+    }
+    
+    return 0;
+}
+```
+
+
+
+## DFS之搜索顺序
+
+这类搜索都是外部搜索，棋盘外部，每一种走法都是新的一种状态。
+
+在回溯过程中，需要保持状态一致，恢复现场。
+
+#### [1116. 马走日](https://www.acwing.com/problem/content/1118/)
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 10;
+int n, m;
+bool st[N][N];
+int res;
+
+int dx[8] = {-2, -1, 1, 2, 2, 1, -1, -2};
+int dy[8] = {1, 2, 2, 1, -1, -2, -2, -1};
+
+void dfs(int x, int y, int cnt) {   // cnt表示当前在搜第几个点
+    if (cnt == n * m) {
+        res++;
+        return;
+    }
+    st[x][y] = true;
+    for (int i = 0; i < 8; i++) {
+        int a = x + dx[i], b = y + dy[i];
+        if (a < 0 || a >= n || b < 0 || b >= m) continue;
+        if (st[a][b]) continue;
+        dfs(a, b, cnt + 1);
+    }
+    st[x][y] = false;
+}
+
+int main() {
+    int T;
+    scanf("%d", &T);
+    while (T--) {
+        int x, y;
+        scanf("%d%d%d%d", &n, &m, &x, &y);
+        memset(st, 0, sizeof st);
+        res = 0;
+        dfs(x, y, 1);
+        printf("%d\n", res);
+    }
+    return 0;
+}
+```
+
+
+
+#### [1117. 单词接龙](https://www.acwing.com/problem/content/1119/)
+
+替换操作
+
+字符串替换 主串从后向前遍历，子串从前向后，用substr截取，相等就替换 然后一直搜下去。
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 25;
+
+int n;
+string word[N];
+int g[N][N];
+int used[N];
+int res;
+
+void dfs(string dragon, int last) {
+    res = max((int)dragon.size(), res);
+    
+    used[last]++;
+    for (int i = 0; i < n; i ++ )
+        if (g[last][i] && used[i] < 2)  // 可以接且用了少于2次
+            dfs(dragon + word[i].substr(g[last][i]), i);
+    used[last]--;
+}
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i++) cin >> word[i];
+    char start;
+    cin >> start;
+    for (int i = 0; i < n; i ++ )           // 初始化每个单词之间是否能连接
+        for (int j = 0; j < n; j ++ ) {
+            string a = word[i], b  = word[j];
+            for (int k = 1; k < min(a.size(), b.size()); k ++ ) 
+                if (a.substr(a.size() - k, k) == b.substr(0, k)) {
+                    g[i][j] = k;    // a的后k，和b的前k
+                    break;
+                }
+        }
+    for (int i = 0; i < n; i ++ )   // 暴搜
+        if (word[i][0] == start)
+            dfs(word[i], i);
+    cout << res << endl;
+    
+    return 0;
+}
+```
+
+
+
+#### [1118. 分成互质组](https://www.acwing.com/problem/content/1120/)
+
+**暴搜本质：**如何不重不漏枚举所有方案
+
+在搜索的时候，两个分支
+
+1. 把某个数加到最后一个组中
+
+    优先考虑这个，因为如果新开一个组答案也是最优解，把该数抽出来放到最后一个组也不影响新组的互质
+
+2. 新开一个组
+
+按照组合的类型枚举，需要定义顺序，可以传入下标定义顺序
+
+通过枚举，判断每一个可以放什么元素
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 15;
+
+int n;
+int p[N];
+bool st[N];
+int group[N][N];
+int res = N;
+
+// 判断第i个数和组内的元素是否全互质
+bool check(int group[], int gc, int i) {   
+    for (int j = 0; j < gc; j++)
+        if (__gcd(p[group[j]], p[i]) > 1) return false;
+    return true;
+}
+
+// g表示当前组，gc当前组内下标
+// u当前一共多少元素 start可以从哪个下标开始搜
+void dfs(int g, int gc, int u, int start) {           
+    if (g >= res) return;   // 优化 剪枝 + 防止死循环
+    if (u == n) res = g;
+    
+    bool flag = true;       // 判断当前组内能否添加元素
+    for (int i = start; i < n; i++) 
+        if (!st[i] && check(group[g], gc, i)) {
+            st[i] = true;
+            group[g][gc] = i;
+            dfs(g, gc + 1, u + 1, i + 1);
+            st[i] = false;
+            flag = false;
+        }
+    if (flag) dfs(g + 1, 0, u, 0);
+}
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i++) cin >> p[i];
+    
+    dfs(1, 0, 0, 0);		// 默认已经有一组
+    cout << res << endl;
+    return 0;
+}
+```
+
+```c++
+// stl写法
+vector<int> group[N];
+
+void dfs(int g, int u, int start) {
+    if (g >= res) return;
+    if (u == n) res = g;
+    
+    bool flag = true;
+    for (int i = start; i < n; i++)
+        if (!st[i] && check(group[g], p[i])) {
+            st[i] = true;
+            group[g].push_back(p[i]);
+            dfs(g, u + 1, i + 1);
+            st[i] = false;
+            group[g].pop_back();
+            flag = false;
+        }
+    if (flag) dfs(g + 1, u, 0);
+}
+```
+
+做法2：贪心+DFS
+
+```c++
+// u是当前处理到序列的下标，used是目前使用到的组数
+void dfs(int u, int used) {			
+    if (used >= res) return;	 // 剪枝：如果当前使用的组>=目前获得的最优解
+    if (u >= n) {				// 用完数字，更新答案
+        res = min(res, used);
+        return;
+    }
+    // 先在已经使用的组里面找，看看能不能插进去
+    for (int i = 1; i <= used; i++) {	
+        if (check(g[i], p[u])) {
+            g[i].push_back(p[u]);
+            dfs(u + 1, used);
+            g[i].pop_back();
+        }
+    }
+    // 如果总组数小于n，则尝试放进新的组
+    if (used <= n){						// 可以不写
+        g[used + 1].push_back(p[u]);
+        dfs(u + 1, used + 1);
+        g[used + 1].pop_back();
+    }
+}
+dfs(0, 0);
+```
+
+
+
+## DFS之剪枝
+
+所有的深搜和宽搜都可以对应一颗搜索树，叶子节点的位置一般都是一种方案。
+
+如果可以在搜索过程中发现路径不合法或者不是最优，则可以提前退出当前分支。
+
+**剪枝策略：**
+
+1. 优化搜索顺序
+
+    大部分情况下，我们应该优先搜索分支较少的节点。
+
+2. 排除等效冗余
+
+    不考虑顺序，优先考虑组合的方式搜索
+
+3. 可行性剪枝
+
+    如果方案不合法，提前退出
+
+4. 最优性剪枝
+
+    最优性已经不及已有方案，提前提出
+
+5. 记忆化搜索（DP）
+
+#### [165. 小猫爬山](https://www.acwing.com/problem/content/167/)
+
+暴搜先考虑顺序
+
+对于一个轻的猫和重的猫，放了重的猫比轻的猫能放的更少，分支更少。
+
+重量如果超出 k 则不往下继续分支
+
+使用车辆超过当前答案，提前退出
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 20;
+
+int n, m;
+int cat[N], sum[N];     // cat[N] 存放每只猫重量 sum[N]存放每台车现有重量
+int res = N;
+
+void dfs(int u, int k) {        // u猫的编号 k已经租用的缆车
+    if (k >= res) return;       // 剪枝 需要的车比最大值大 立即返回
+    if (u == n) {               // 递归边界 0-n-1猫全部上车 求最小值
+        res = min(res, k);
+        return;
+    }
+    
+    // 猫有以下2种分配方式
+    
+    // 第一种在0-k-1的车辆编号上，能够放进去，递归这种情况
+    for (int i = 0; i < k; i++) {   	
+        if (cat[u] + sum[i] <= m) {
+            sum[i] += cat[u];
+            dfs(u + 1, k);
+            sum[i] -= cat[u];	// 恢复现场
+        }
+    }
+    // 第二种用一辆新的车放置小猫
+    sum[k] = cat[u];
+    dfs(u + 1, k + 1);
+    sum[k] = 0;					// 恢复现场
+    
+    // 下标1开始 for (int i = 1; i <= k; i++)
+    //  sum[k + 1] = cat[u];
+    //  dfs(u + 1, k + 1);
+    //  sum[k + 1] = 0;
+}
+
+int main() {
+    cin >> n >> m;
+    for (int i = 0; i < n; i++) cin >> cat[i];
+    
+    // 重量大的猫更难运送，大到小枚举减少分支！！！
+    sort(cat, cat + n, greater<int>());
+
+    dfs(0, 0);
+    
+    cout << res << endl;
+    return 0;
+}
+```
+
+
+
+## 迭代加深
+
+深搜每次选定一个分支，不断深入，直到达到递归边界才回溯，策略带有一定缺陷。
+
+如果搜索树每个节点分支数目非常多，并且答案在某个浅的节点上，如果选错了会在非答案浪费时间。
+
+我们可以从小到大限制搜索的深度，如果在当前深度限制下搜不到答案，就把深度限制增加，从新进行一次搜索，这就是迭代加僧的思想。“迭代”就是以上一次的结果为基础，重复执行以逼近答案的意思。
+
+用max_depth看成一片搜索区域，只要搜不去就剪掉，搜索是一个逐步扩大的过程。
+
+如果分支的层数非常深，但是答案可能在比较浅的层里，有助于避免程序避免走到死胡同
+
+#### [170. 加成序列](https://www.acwing.com/problem/content/172/)
+
+n 为 100，最优情况下 $log100$ 是7到8的范围，但绝对答案层不止这点
+
+可就算是放宽了算，乘3也只有30左右，深度很浅，很容易想到迭代加深
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 110;
+
+int n;
+int path[N];
+
+bool dfs(int u, int k) {            // u是当前层数，k是最大层数
+    if (u == k) return path[u - 1] == n;
+    bool st[N] = {0};               // 通过 bool数组排除等效冗余
+    for (int i = u - 1; i >= 0; i--)    // 从大到小枚举所有和
+        for (int j = i; j >= 0; j--) {
+            int s = path[i] + path[j];
+            if (s > n || s <= path[u - 1] || st[s]) continue;
+            st[s] = true;       // 标记这个和被搜索过
+            path[u] = s;
+            if (dfs(u + 1, k)) return true;
+        }
+    return false;
+}
+
+int main() {
+    path[0] = 1;
+    while (cin >> n, n) {
+        int k = 1;
+        while (!dfs(1, k)) k++;     // 不断扩大范围
+        for (int i = 0; i < k; i++) cout << path[i] << ' ';
+        puts("");
+    }
+    
+    return 0;
+}
+```
+
+
+
+## 双向搜索
+
+双向搜索也可以避免在深层子树上浪费时间，在一些题目中，问题不但具有“初态”，还具有明确的“终态”，并且从初态开始搜索与从终态开始逆向搜索产生的搜索树都能覆盖整个状态空间，这种情况下，就可以采用双向搜索——从初态和终态出发各搜索一半状态。
+
+#### [171. 送礼物](https://www.acwing.com/problem/content/173/)
+
+搜索出从前一半礼物中选出若干个，可能达到的0~W之间的所有重量值，存放在一个数组A中，并对数组A进行排序，去重。
+
+第二次搜索，尝试从后一半礼物中选出一些，对于每个可能达到的重量t，在第一部分得到的数组A中二分查找＜=W-t 的数组中最大的一个，用二者的和更新答案。
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long LL;
+
+const int N = 1 << 24;
+
+int n, m, k;
+int g[50], weights[N];
+int cnt = 0;
+int ans;
+
+void dfs(int u, int s) {
+    if (u == k) {
+        weights[cnt++] = s;
+        return;
+    }
+    if ((LL)s + g[u] <= m) dfs(u + 1, s + g[u]);
+    dfs(u + 1, s);
+}
+
+void dfs2(int u, int s) {
+    if (u == n) {
+        int l = 0, r = cnt - 1;
+        while (l < r) {
+            int mid = l + r + 1 >> 1;
+            if (weights[mid] + (LL)s <= m) l = mid;
+            else r = mid - 1;
+        }
+        if (weights[l] + (LL)s <= m) ans = max(ans, weights[l] + s);
+        return;
+    }
+    if ((LL)s + g[u] <= m) dfs2(u + 1, s + g[u]);
+    dfs2(u + 1, s);
+}
+
+int main() {
+    cin >> m >> n;
+    for (int i = 0; i < n; i++) cin >> g[i];
+    
+    sort(g, g + n);
+    reverse(g, g + n);
+    
+    k = n / 2;  // 防止 n = 1时，出现死循环
+    dfs(0, 0);
+    
+    sort(weights, weights + cnt);
+    int t = 1;
+    for (int i = 1; i < cnt; i ++ )
+        if (weights[i] != weights[i - 1])
+            weights[t ++ ] = weights[i];
+            
+    cnt = t;
+    
+    dfs2(k, 0);
+
+    cout << ans << endl;
+    
+    return 0;
+}
+```
+
+
+
+# 图论
+
+## 单源最短路的建图方式
+
+单源最短路题型：
+
+1. 边权均非负
+    - 朴素 Dijkstra
+    - 堆优化Dijkstra
+2. 有负权边
+    - Bellman-Ford（限定k条边）
+    - Spfa
+
+难点在于**问题的转化和抽象**
+
+#### [1129. 热浪](https://www.acwing.com/problem/content/1131/)
+
+基础的单源最短路模型，求一个点到另一个点的最短距离
+
+可以使用 `dijkstra()` 以及 `spfa()`
+
+```c++
+#include <bits/stdc++.h>
+#define x first
+#define y second
+
+using namespace std;
+
+typedef pair<int, int> PII;
+const int N = 2510, M = 6210 * 2;
+typedef pair<int, int> PII;
+
+int n, m, x, y;
+int h[N], e[M], w[M], ne[M], idx;
+
+int dist[N];
+bool st[N];
+
+void add(int a, int b, int c) {
+    e[idx] = b, w[idx] = c, ne[idx] = h[a], h[a] = idx++;
+}
+
+int spfa(int x, int y) {
+    memset(dist, 0x3f, sizeof dist);
+    dist[x] = 0;
+    queue<int> q;
+    q.push(x);
+    st[x] = true;
+    while (q.size()) {
+        auto t = q.front();
+        q.pop();
+        st[t] = false;
+        for (int i = h[t]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (dist[j] > dist[t] + w[i]) {
+                dist[j] = dist[t] + w[i];
+                if (!st[j]) {
+                    q.push(j);
+                    st[j] = true;
+                }
+            }
+        }
+    }
+    return dist[y];
+    
+}
+
+int dijkstra(int x, int y) {
+    memset(dist, 0x3f, sizeof dist);
+    dist[x] = 0;
+    priority_queue<PII, vector<PII>, greater<PII>> heap;
+    heap.push({0, x});
+    
+    while (heap.size()) {
+        auto t = heap.top();
+        heap.pop();
+        int node = t.y, distance = t.x;
+        if (st[node]) continue;
+        st[node] = true;
+        for (int i = h[node]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (dist[j] > distance + w[i]) {
+                dist[j] = distance + w[i];
+                heap.push({dist[j], j});
+            }
+        }
+    }
+    return dist[y];
+    
+}
+
+int main() {
+    cin >> n >> m >> x >> y;
+
+    memset(h, -1, sizeof h);
+    while (m--) {
+        int a, b, c;
+        scanf("%d%d%d", &a, &b, &c);
+        add(a, b, c);
+        add(b, a, c);
+    }
+    
+    //cout << spfa(x, y) << endl;
+    cout << dijkstra(x, y) << endl;
+    return 0;
+}
+```
+
+
+
+#### [1128. 信使](https://www.acwing.com/problem/content/1130/)
+
+当指挥部下达一个命令后，指挥部就派出若干个信使向与指挥部相连的哨所送信。
+
+当一个哨所接到信后，这个哨所内的信使们也以同样的方式向其他哨所送信。**信在一个哨所内停留的时间可以忽略不计**。
+
+直至所有 $n$ 个哨所全部接到命令后，送信才算成功。
+
+模型：**最短路广播模型**，当到达一个点后，可以沿该点往下一个点继续走
+
+走完所有点最小值 即 起点到各个点距离的最大值
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 110, INF = 0x3f3f3f3f;	// 400以内无脑floyd
+
+int n, m;
+int d[N][N];
+
+int main() {
+    cin >> n >> m;
+    memset(d, 0x3f, sizeof d);
+    for (int i = 1; i <= n; i++) d[i][i] = 0;
+    
+    for (int i = 0; i < m; i++) {
+        int a, b, c;
+        cin >> a >> b >> c;
+        d[a][b] = d[b][a] =  min(d[a][b], c);
+    }
+    for (int k = 1; k <= n; k ++ )
+        for (int i = 1; i <= n; i ++ )
+            for (int j = 1; j <= n; j ++ )
+                d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+    
+    int res = 0;
+    for (int i = 2; i <= n; i++) {
+        if (d[1][i] == 0x3f3f3f3f) {
+            res = -1;
+            break;
+        } else {
+            res = max(res, d[1][i]);
+        }
+    }
+    cout << res << endl;
+    return 0;
+}
+```
+
+
+
+#### [1127. 香甜的黄油](https://www.acwing.com/problem/content/1129/)
+
+**模型：**有若干个点，从中选定一个起点，求从哪个点出发到其余所有点的距离和最短
+
+分别从这各个点出发，求一次最短路记录和的最小值。
+
+数据量：点800个，边1450。
+
+- 如果`floyd` $o(n^3)$ 超时
+- 朴素版 `dijkstra` $O(n*n^2)$ 超时
+- 堆优化 `dijkstra` $O(nmlogn)$
+- `spfa` $O(n * m)$
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 810, M = 3000, INF = 0x3f3f3f3f;
+
+int n, p, m;
+int id[N];
+int h[N], e[M], w[M], ne[M], idx;
+int dist[N];
+bool st[N];
+
+void add(int a, int b, int c) {
+    e[idx] = b, w[idx] = c, ne[idx] = h[a], h[a] = idx ++ ;
+}
+
+int spfa(int x) {
+    memset(dist, 0x3f, sizeof dist);
+    dist[x] = 0;
+    queue<int> q;
+    q.push(x);
+    st[x] = true;
+    while (q.size()) {
+        int t = q.front();
+        q.pop();
+        st[t] = false;
+        for (int i = h[t]; i != -1; i = ne[i]) {
+            int j = e[i];
+            if (dist[j] > dist[t] + w[i]) {
+                dist[j] = dist[t] + w[i];
+                if (!st[j]) {
+                    q.push(j);
+                    st[j] = true;
+                }
+            }
+        }
+    } 
+    int res = 0;                    // 和为 所选牧场到所有奶牛 的距离
+    for (int i = 1; i <= n; i++) {
+        int j = id[i];
+        if (dist[j] == INF) return INF;		// 说明有一个到不了
+        res += dist[j];
+    }
+    return res;
+    
+}
+
+int main() {
+    cin >> n >> p >> m;
+    for (int i = 1; i <= n; i++) cin >> id[i];  // 记录 奶牛所在的牧场号
+    
+    memset(h, -1, sizeof h);
+    for (int i = 0; i < m; i++) {
+        int a, b, c;
+        cin >> a >> b >> c;
+        add(a, b, c), add(b, a, c);
+    }
+    
+    int res = INF;
+    for (int i = 1; i <= p; i++) res = min(res, spfa(i));
+    
+    cout << res << endl;
+    
+    return 0;
+}
+
+```
+
+
+
+#### [1126. 最小花费](https://www.acwing.com/problem/content/description/1128/)
+
+题目由普通的最短路问题变成了乘法最大值问题，每走一步会变成原来的0-1倍
+
+问最少需要多少起始值，到达终点变为100。
+
+**求乘法的最大值：**
+
+1. 路径`0-1`：使用`dijkstra`，等价于没有负权边。初始化时候`dist`置为0，表示最小
+2. 路径`>0`：使用`spfa`，等价于有负权边
+
+**求乘法的最小值：**
+
+1. `>=1`：`dijkstra` 理由：算法的前提是st数组里的都是已经确定最小值的，若存在<1的话会破坏这个前提。
+2. `>0`：`spfa`
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 2010;
+
+int n, m, S, T;
+double g[N][N];
+double dist[N];
+bool st[N];
+
+int dijkstra() {
+    dist[S] = 1;
+    // 求最大值 所以 dist不用置成0x3f，可以置成0
+    for (int i = 0; i < n; i++) {
+        int t = -1;
+        for (int j = 1; j <= n; j++) {
+            if (!st[j] && (t == -1 || dist[t] < dist[j])) t = j;
+        }
+        st[t] = true;
+        for (int j = 1; j <= n; j++) {
+            dist[j] = max(dist[j], dist[t] * g[t][j]);
+        }
+    }
+}
+int main() {
+    cin >> n >> m;
+   
+    while (m--) {
+        int a, b, c;
+        scanf("%d%d%d", &a, &b, &c);
+        double z = (100.0 - c) / 100;
+        g[a][b] = g[b][a] = max(g[a][b], z);
+    }
+    cin >> S >> T;
+    dijkstra();
+    
+    printf("%.8lf\n", 100.0 / dist[T]);
+    
+    return 0;
+}
+```
+
+
+
+#### [920. 最优乘车](https://www.acwing.com/problem/content/description/922/)
+
+这道题就是把每一个巴士线路的所有前面的点到后面的点连一条边，边的权重为1。
+
+最后从1 跑一遍BFS即可。
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 510;
+
+int n, m;
+int g[N][N];
+int dist[N];
+int stop[N];
+
+int bfs() {
+    memset(dist, 0x3f, sizeof dist);
+    queue<int> q;
+    q.push(1);
+    dist[1] = 0;
+    while (q.size()) {
+        int t = q.front();
+        q.pop();
+        for (int i = 1; i <= n; i++) {
+            if (g[t][i] && dist[i] > dist[t] + 1) {	// 存在边且换乘次数更少
+                dist[i] = dist[t] + 1;
+                q.push(i);
+            }
+        }
+    }
+    return dist[n];
+}
+
+int main() {
+    cin >> m >> n;
+    cin.get();		// 吃掉回车
+    while (m--) {
+        string line;
+        getline(cin, line);
+        stringstream ssin(line);
+        int cnt = 0, p;
+        while (ssin >> p) stop[cnt++] = p;
+        for (int j = 0; j < cnt; j++)
+            for (int k = j + 1; k < cnt; k++)
+                g[stop[j]][stop[k]] = 1;
+    }
+    bfs();
+    if (dist[n] == 0x3f3f3f3f) puts("NO");
+    else cout << max(dist[n] - 1, 0) << endl;
+    return 0;
+}
+```
+
