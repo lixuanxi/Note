@@ -1916,6 +1916,122 @@ for (int len = 1; len <= n; len++) {         // 区间长度
 
 
 
+#### [1222. 密码脱落](https://www.acwing.com/problem/content/1224/)
+
+题目描述：
+
+当前字符串最少添加多少字符，可以变成回文串。
+
+可以先求字符串内最大的回文串长度，剩下的字符串可以通过添加变成字符串
+最多增补的数量 = 字符串长度 - 最长回文串长度
+
+**状态表示：**$f[i][j]$
+
+- 集合：所有s[l-r]之间的回文子序列的集合
+- 属性：最大值
+
+**状态计算:**
+
+- 集合划分的依据：根据l,r共有四种状态
+
+    1. 选 $l, r$：`f[l+1][r-1]+2`，需要 `s[l] == s[r]`
+    2. 选 $l$ 不选 $r$：`f[l][r-1]`
+    3. 选 $r$ 不选 $l$：`f[l+1][r]`
+    4. 都不选：`f[l+1][r-1]`
+
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 1010;
+int f[N][N];
+
+int main() {
+    string s;
+    cin >> s;
+    int n = s.size();
+    s = " " + s;
+    for (int len = 1; len <= n; len++) {
+        for (int i = 1; i + len - 1 <= n; i++) {
+            int l = i, r = i + len - 1;
+            if (len == 1) {			// 初始化
+                f[l][r] = 1;
+                continue;
+            }
+            f[l][r] = max(f[l + 1][r], f[l][r - 1]);
+            if (s[l] == s[r]) f[l][r] = max(f[l][r], f[l + 1][r - 1] + 2);
+        }
+    }
+    cout << n - f[1][n] << endl;
+    return 0;
+}
+```
+
+
+
+#### [1070. 括号配对](https://www.acwing.com/problem/content/1072/)
+
+类似密码脱落
+
+从当前BE变成GBE需要添加最少字符的数量 等价于 当前BE变成最大的GBE需要去掉字符的数量
+即至少添加最少字符 等价于 总数量 - 最大GBE子序列的长度
+
+注意：这题和密码脱落也有些不同，GBE有回文的性质 或者 有另外一种性质，例如 `[]()` , `([])` 均是GBE，因此需要对 `s[l]` 和 `s[R]` 不匹配的情况需要进一步划分，划分方式和石子合并类似
+
+**状态表示：**$f[l][r]$
+
+- 集合：所有s[l-r]之间的GBE子序列的集合
+
+- 属性：子序列长度的最大值
+
+**状态计算：**
+
+- 集合划分的依据：s[l]与s[r] 是否匹配
+    1. 匹配：`f[l+1][r-1]+2`
+    2. 不匹配：`max(f[l][k],f[k+1][r])`
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 110;
+
+int f[N][N];
+
+bool is_match(char l, char r) {
+    if (l == '(' && r == ')') return true;
+    if (l == '[' && r == ']') return true;
+    return false;
+}
+
+int main() {
+    string s;
+    cin >> s;
+    int n = s.size();
+    s = " " + s;
+    for (int len = 1; len <= n; len++) {
+        for (int i = 1; i + len - 1 <= n; i++) {
+            int l = i, r = i + len - 1;
+            if (len == 1) {			// 初始化
+                f[l][r] = 0;
+                continue;
+            }
+            if (is_match(s[l], s[r])) f[l][r] = max(f[l][r], f[l + 1][r - 1] + 2);
+            for (int k = l; k <= r; k++)	// 枚举分割点，取最大值
+                f[l][r] = max(f[l][r], f[l][k] + f[k + 1][r]);
+        }
+    }
+    cout << n - f[1][n] << endl;
+    return 0;
+    
+}
+```
+
+
+
 #### [320. 能量项链](https://www.acwing.com/problem/content/322/)
 
 **状态表示：**`f[i, j]`
@@ -2171,6 +2287,21 @@ int dfs(int u, int father) {
     return dist;
 }
 dfs(1, -1);			// 可以任意选取一个点作为根节点
+
+int d1[N], d2[N];
+int maxd;
+// 可以用2个数组记录状态变量
+void dfs(int u, int father) {
+    for (int i = h[u]; i != -1; i = ne[i]) {
+        int j = e[i];
+        if (j == father) continue;
+        dfs(j, u);
+        int d = d1[j] + 1;
+        if (d > d1[u]) d2[u] = d1[u], d1[u] = d;
+        else if (d > d2[u]) d2[u] = d;
+    }
+    maxd = max(maxd, d1[u] + d2[u]);
+}
 ```
 
 **方法2：两次DFS**
