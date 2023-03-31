@@ -40,6 +40,8 @@ ctrl c  		   //取消命令，并且换行
 ctrl u 			   //清空本行命令
 ctrl l 			   //清屏
 tab				   //可以补全命令和文件名，如果补全不了快速按两下tab键，可以显示备选选项
+ctrl e			   // end
+ctrl u			   // home
 ```
 
  复制文本
