@@ -3731,6 +3731,38 @@ for (int i = 0; i < n; i++) printf("%d ", top[i])
 
 
 
+**DFS做法**
+
+```c++
+int st[N],q[N],top;				// st用0表示未搜，1表示队列中，2表示搜过
+bool dfs(int u) {
+    st[u] = 1;
+    for (int i = h[u]; i != -1; i = ne[i]) {
+        int j = e[i];
+        if (!st[j]) {
+            if (!dfs(j)) return false;
+        } else if (st[j] == 1) return false;
+    }
+    q[top++] = u;
+    st[u] = 2;
+    return true;
+}
+
+bool topsort() {
+    for (int i = 1; i <= n; i++) {
+        if (!st[i] && !dfs(i)) return false;
+    }
+    return true;
+}
+void printf_path() {
+    //逆序，倒输出
+	for(int i = n-1; i >= 0; i--)
+    	printf("%d ",q[i]);
+}
+```
+
+
+
 ------
 
 
@@ -3941,9 +3973,7 @@ int dijkstra() {
                 heap.push({dist[j], j});
             }
         }    
-        
     }
-    
     if (dist[n] == 0x3f3f3f3f) return -1;	// 路径不存在
     return dist[n];
 }
@@ -4002,8 +4032,7 @@ int bellman_ford() {
     for (int i = 0; i < n; i ++ ) {
         for (int j = 0; j < m; j ++ ) {	//遍历所有边
             int a = edges[j].a, b = edges[j].b, w = edges[j].w;
-            if (dist[b] > dist[a] + w)
-                dist[b] = dist[a] + w;
+            dist[b] = min(dist[b], dist[a] + w);
         }
     }
 /*
@@ -4299,6 +4328,10 @@ int prim() {
 ### 2. Kruskal算法
 
 **时间复杂度是 O(mlogm), n 表示点数，m 表示边数**
+
+可以方便求最小生成树森林，不需要用prim对每个点特判
+
+求最小生成树森林最直接的想法对每个点都求一遍最小生成树，当然如果已经在一个最小生成树的点就没必要再以该点求最小生成树（防止重复求），然后每次减去每个最小生成树的边，那么最终减去的就是最小生成树森林中的边，然后就是结果。
 
 **算法思路：**
 
@@ -7064,7 +7097,7 @@ LL qmi(int a, int b, int p) {
     LL res = 1;
     while (b) {
         if (b & 1) res = res * a % p;
-        a = a * (LL)a % p;
+        a = (LL)a * a % p;
         b >>= 1;
     }
     return res;
@@ -7106,7 +7139,7 @@ int main() {
 
 ### 2. 快速幂求逆元
 
-#### 乘法逆元的定义
+**乘法逆元的定义**
 
 若整数 $b，m$ 互质**（一定要互质，否则无解）**，并且对于任意的整数 $a$，如果满足 $b|a$ (b能整除a, a % b == 0)，则存在一个整数 $x$，使得 $a/b≡a×x(mod\ m)$，则称 $x$ 为 $b$ 的模 $m$ 乘法逆元，记为 $b^{−1}(mod\ m)$
 $b$ 存在乘法逆元的充要条件是 $b$ 与模数 $m$ 互质。当模数 $m$ 为质数时，$b^{m−2}$ 即为 $b$ 的乘法逆元。
@@ -7374,6 +7407,12 @@ for (int i = 1; i < N; i ++ ) {
     fact[i] = (LL)fact[i - 1] * i % mod;
     infact[i] = (LL)infact[i - 1] * qmi(i, mod - 2, mod) % mod;
 }
+    while (n--) {
+        int a, b;
+        cin >> a >> b;
+        cout << (LL)fact[a] * infact[b] % mod * infact[a - b] % mod << endl;
+        
+    }
 ```
 
 
@@ -10185,6 +10224,12 @@ public:
 
 ## 1. 树状数组
 
+- 可以用于对数组的某个数动态的操作，求区间和
+
+- 可以用来求某个数左右比他大小的数的个数
+
+- 延申：对树组的某段区间动态的操作，求某个数（结合差分）
+
 引入问题
 给出一个长度为 $n$ 的数组，完成以下两种操作：
 
@@ -10255,6 +10300,135 @@ int sum(int x) {
     int sum = 0;
     for(int i = x; i; i -= lowbit(i)) sum += t[i];
     return sum;
+}
+```
+
+
+
+#### [1264. 动态求连续区间和](https://www.acwing.com/problem/content/1266/)
+
+给定一个数组，动态的操作数组某个数，求区间和
+
+```c++
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 100010;
+
+int n, m;
+int t[N];
+
+int lowbit(int x) {
+    return x & -x;
+}
+void add(int x, int k) {
+    for (int i = x; i <= n; i += lowbit(i)) t[i] += k;
+}
+int sum(int x) {
+    int sum = 0;
+    for (int i = x; i; i -= lowbit(i)) sum += t[i];
+    return sum;
+}
+
+int main() {
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++) {
+        int x;
+        scanf("%d", &x);
+        add(i, x);
+    }
+    while (m--) {
+        int op, a, b;
+        scanf("%d%d%d", &op, &a, &b);
+        if (op == 1) {
+            add(a, b);
+        } else {
+            printf("%d\n", sum(b) - sum(a - 1));
+        }
+    }
+    return 0;
+}
+```
+
+
+
+#### [1215. 小朋友排队](https://www.acwing.com/problem/content/1217/)
+
+利用树状树组记录 $a_i$ 左边有多少比本身大的数，右边有多少比本身小的数
+
+左右两边各来一次滚动树状数组
+
+```c++
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i ++ ) scanf("%d", &h[i]), h[i] ++ ;
+    for (int i = 0; i < n; i++) {
+        sum[i] = query(N - 1) - query(h[i]);	// 比 h[i] 大的数的个数
+        add(h[i], 1);						  // 插入h[i]
+    }
+    memset(t, 0, sizeof t);
+    for (int i = n - 1; i >= 0; i --) {
+        sum[i] += query(h[i] - 1);			   // 比 h[i] 小的数
+        add(h[i], 1);
+    }
+    LL res = 0;
+    for (int i = 0; i < n; i++) res += (LL)sum[i] * (sum[i] + 1) / 2;
+    cout << res << endl;
+    return 0;
+}
+```
+
+
+
+#### [242. 一个简单的整数问题](https://www.acwing.com/problem/content/248/)
+
+延申：对树组的某段区间动态的操作，求某个数（结合差分）
+
+- a[L-R] += c		等价于  $b[l] += c,\ \ b[r+1]-=c$
+- 求 a[x] 是多少？等价于  $b_1+b_2+...+b_x$
+
+```c++
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long LL;
+const int N = 100010;
+int n, m;
+int a[N];
+LL t[N];
+
+int lowbit(int x) {
+    return x & -x;
+}
+void add(int x, int k) {
+    for (int i = x; i <= n; i += lowbit(i)) t[i] += k;
+}
+LL sum(int x) {
+    LL res = 0;
+    for (int i = x; i; i -= lowbit(i)) res += t[i];
+    return res;
+}
+
+int main() {
+    cin >> n >> m;
+    for (int i = 1; i <= n; i++) scanf("%d", &a[i]);
+    for (int i = 1; i <= n; i++) add(i, a[i] - a[i - 1]);
+        
+    while (m--) {
+        char op[2];
+        scanf("%s", &op);
+        if (op[0] == 'Q') {
+            int x;
+            scanf("%d", &x);
+            printf("%d\n", sum(x));
+        } else {
+            int l, r, d; 
+            scanf("%d%d%d", &l, &r, &d);
+            add(l, d);
+            add(r + 1, -d);
+        }
+    }
+    return 0;
 }
 ```
 

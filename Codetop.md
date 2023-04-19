@@ -1358,3 +1358,173 @@ public:
 };
 ```
 
+
+
+## 94. 二叉树的中序遍历
+
+**递归**
+
+中序遍历：左中右
+
+```c++
+class Solution {
+public:
+    vector<int> res;
+    vector<int> inorderTraversal(TreeNode* root) {
+        dfs(root);
+        return res;
+    }
+    void dfs(TreeNode* root) {
+        if (!root) return;
+        dfs(root->left);
+        res.push_back(root->val);
+        dfs(root->right);
+    }
+};
+```
+
+
+
+## 232. 用栈实现队列
+
+**模拟**
+
+两个栈实现，一个栈存数据，一个做缓存
+
+需要 弹出/返回 第一个元素，先把元素全移动到缓存栈内，弹出/返回 后，在全部移动到数据栈
+
+```c++
+class MyQueue {
+public:
+    stack<int> stk, tmp;
+    MyQueue() {
+
+    }
+    
+    void push(int x) {
+        stk.push(x);
+    }
+    
+    int pop() {
+        while (!stk.empty()) {
+            int x = stk.top();
+            stk.pop();
+            tmp.push(x);
+        }
+        int x = tmp.top();
+        tmp.pop();
+        while (!tmp.empty()) {
+            int x = tmp.top();
+            tmp.pop();
+            stk.push(x);
+        }
+        return x;
+    }
+    
+    int peek() {
+        while (!stk.empty()) {
+            int x = stk.top();
+            stk.pop();
+            tmp.push(x);
+        }
+        int x = tmp.top();
+        while (!tmp.empty()) {
+            int x = tmp.top();
+            tmp.pop();
+            stk.push(x);
+        }
+        return x;
+    }
+    
+    bool empty() {
+        return stk.empty();
+    }
+};
+```
+
+
+
+## 19. 删除链表的倒数第 N 个结点
+
+**快慢指针**
+快指针先走 $k$，然后两个指针同步走，当快指针走到头(最后一个值)时，慢指针就是链表倒数第 $k + 1$ 个节点
+
+将倒数第 $k - 1$ 个节点指向倒数第 $k + 1$ 个节点，实现删除倒数第 $k$ 个节点
+
+```c++
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        ListNode* dummy = new ListNode(0);
+        dummy->next = head;
+        auto fast = dummy;
+        auto slow = dummy;
+        while (n--) fast = fast->next;
+        while (fast->next) {
+            fast = fast->next;
+            slow = slow->next;
+        }
+        slow->next = slow->next->next;
+        return dummy->next;
+    }
+};
+```
+
+
+
+
+
+### 72. 编辑距离
+
+### 动态规划
+
+状态表示：`f[i][j]`
+
+- 集合：所有将 `a[i][j]` 变成 `b[i][j]` 的操作方式
+- 属性：最小值
+
+状态计算：
+
+- 集合划分的依据：a[i], b[j] 是否相同，划分成三类 00 01 10 11`
+
+    `a[i]` 比 `b[i]` 多 → 删`a[i]`、`a[i]` 比 `b[i]` 少 → 增 `a[i]` 、`a[i]` 与 `b[i]` 不同 → 改 `a[i]`
+
+    `f[i - 1][j] + 1`、`f[i][j - 1] + 1`、`f[i - 1][j - 1]`
+
+    `f[i][j] = min(f[i - 1][j] + 1, f[i][j - 1] + 1, f[i - 1][j - 1] + 1)`
+
+1. 删除操作：把`a[i]`删掉之后 `a[1~i]` 和 `b[1~j]` 匹配
+
+    所以之前要先做到 `a[1~(i-1)]` 和 `b[1~j]` 匹配     			    	`f[i-1][j] + 1`
+
+2. 插入操作：插入之后 `a[i]` 与 `b[j]` 完全匹配，所以插入的就是 `b[j]`
+
+    所以之前 `a[1~i]` 和 `b[1~(j-1)]` 匹配								 	   `f[i][j-1] + 1` 
+
+3. 替换操作：把 `a[i]` 改成 `b[j]` 之后想要 `a[1~i]` 与 `b[1~j]` 匹配 
+    所以修改这一位之前，`a[1~(i-1)]` 应该与 `b[1~(j-1)]` 匹配    `f[i-1][j-1] + 1`
+    但是如果本来 `a[i]` 与 `b[j]` 这一位相等，就不用改                `f[i-1][j-1] + 0`
+
+```c++
+class Solution {
+public:
+    int minDistance(string word1, string word2) {
+        int n = word1.size(), m = word2.size();
+        word1 = ' ' + word1;
+        word2 = ' ' + word2;
+        vector<vector<int>> f (n + 1, vector<int> (m + 1));
+
+        for (int i = 0; i <= m; i++) f[0][i] = i;
+        for (int i = 0; i <= n; i++) f[i][0] = i;
+
+        for (int i = 1; i <= n; i++) 
+            for (int j = 1; j <= m; j++) {
+                f[i][j] = min(f[i - 1][j] + 1, f[i][j - 1] + 1);
+                if (word1[i] == word2[j]) f[i][j] = min(f[i][j], f[i - 1][j - 1]);
+                else f[i][j] = min(f[i][j], f[i - 1][j - 1] + 1);
+            }
+        return f[n][m];
+    }
+};
+```
+

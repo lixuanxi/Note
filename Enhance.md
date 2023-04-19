@@ -55,7 +55,8 @@
 例如，需要先把所有状态初始化为正无穷，初始化状态的起点（dp求最小值必须要的步骤）
 
 ```c++
-    for (int i = 1; i <= n; i++)
+    memset(f, 0x3f, sizeof f);
+	for (int i = 1; i <= n; i++)
         for (int j = 1; j <= n; j++) {
             if (i == 1 && j == 1) f[i][j] = w[i][j];
             else {
@@ -99,15 +100,15 @@
         for (int i = 1; i < k && i <= n; ++ i) {		// i1
             for (int j = 1; j < k && j <= n; ++ j) {	// i2
                 int t = w[i][k - i];
-                if(i!=j) t += w[j][k - j];
+                if(i != j) t += w[j][k - j]; // 如果两条路线走到一个格子中，则只累加一次物品的价值
                 int &x = f[k][i][j];
-                x = max(x, f[k-1][i][j]);
-                x = max(x, f[k-1][i-1][j-1]);
-                x = max(x, f[k-1][i][j-1]);
-                x = max(x, f[k-1][i-1][j]);
+                x = max(x, f[k - 1][i][j]);
+                x = max(x, f[k - 1][i - 1][j - 1]);
+                x = max(x, f[k - 1][i][j - 1]);
+                x = max(x, f[k - 1][i - 1][j]);
                 x += t;   
             }
-
+	printf("%d\n", f[n + n][n][n]);
 ```
 
 
@@ -137,6 +138,7 @@
                 x = max(x, f[k-1][i-1][j]);
                 x += t;
             }
+	printf("%d\n", f[n + n][n][n]);
 ```
 
 
@@ -328,7 +330,8 @@
 （注：求不上升子序列的个数可以转化为求最长上升子序列长度）
 
 ```c++
-  	for (int i = 0; i < n; i++) {
+  	int res = 0, cnt = 0;
+	for (int i = 0; i < n; i++) {
         f[i] = 1;
         for (int j = 0; j < i; j ++ )
             if (h[i] <= h[j])
@@ -400,22 +403,22 @@ void dfs(int u, int su, int sd) {
     }
     
     // 情况1：将当前数放到上升子序列中
-    int k = 0;								// 如果大于等于则往后寻找
-    while (k < su && up[k] >= q[u]) k++;    // 找到第一个比q[u]小的数
+    int k = 0;
+    while (k < su && up[k] >= a[u]) k++;    // 找到最后一个比q[u]小的数
     int t = up[k];
-    up[k] = q[u];
+    up[k] = a[u];
     if (k < su) dfs(u + 1, su, sd);
     else dfs(u + 1, su + 1, sd);
     up[k] = t;
     
     // 情况2：将当前数放到下降子序列中
-    int k = 0;								// 如果小于等于则往后寻找
-    while (k < sd && down[k] <= q[u]) k++;  // 找到第一个比q[u]大的数
-    int t = up[k];
-    up[k] = q[u];                           // 更新这个序列的最小值（如果是新序列说明 k = su)
-    if (k < su) dfs(u + 1, su, sd);         // k < su说明是没有新的序列
-    else dfs(u + 1, su + 1, sd);            // 否则序列数加一
-    up[k] = t;
+    k = 0;
+    while (k < sd && down[k] <= a[u]) k++;  // 找到最后一个比a[u]大的数
+    t = down[k];
+    down[k] = a[u];                         // 更新这个序列的最小值（如果是新序列说明 k = su)
+    if (k < sd) dfs(u + 1, su, sd);         // k < sd说明是没有新的序列
+    else dfs(u + 1, su, sd + 1);            // 否则序列数加一
+    down[k] = t;
 }
 
 int main() {
@@ -1536,6 +1539,8 @@ for (从最后一件循环至第一件) {
 
 ### 背包问题求方案数
 
+**[11. 背包问题求方案数](https://www.acwing.com/problem/content/11/)**
+
 题目描述：
 
 有 $N$ 件 物品 和一个 容量 为 $V$ 的背包。每件 物品 只能使用 一次 
@@ -2288,7 +2293,7 @@ int dfs(int u, int father) {
 }
 dfs(1, -1);			// 可以任意选取一个点作为根节点
 
-int d1[N], d2[N];
+int d1[N], d2[N], up[N];
 int maxd;
 // 可以用2个数组记录状态变量
 void dfs(int u, int father) {

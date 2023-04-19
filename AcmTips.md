@@ -57,7 +57,7 @@ C语法：
 #include <stdio.h>
 int main() {
     int a,b;
-    scanf("%d %d",&a, &b);
+    scanf("%d%d",&a, &b);
     printf("%d\n",a+b);
 }
 ```
@@ -444,6 +444,8 @@ for(int i = 0; i < n; i++)
 
 ```c++
 int printf(const char *format, ...)
+printf("%03d",n);		// 输出n，若n不足三位则用前导0补
+printf("%.3f\n", n); 	// 输出浮点型n，保留三位小数
 ```
 
 | 常用输出格式        | 意义                          |
@@ -500,4 +502,19 @@ int printf(const char *format, ...)
 | h      | 参数被解释为短整型或无符号短整型（仅适用于整数说明符：i、d、o、u、x 和 X）。 |
 | l      | 参数被解释为长整型或无符号长整型，适用于整数说明符（i、d、o、u、x 和 X）及说明符 c（表示一个宽字符）和 s（表示宽字符字符串）。 |
 | L      | 参数被解释为长双精度型（仅适用于浮点数说明符：e、E、f、g 和 G）。 |
+
+
+
+
+
+### 13. __int128
+
+```c++
+typedef __int128 int128;
+
+void write(int128 x) {			// 输出得这样输出
+	if (x > 9) write(x / 10);
+	putchar(x % 10 + '0');
+}
+```
 
