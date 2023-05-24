@@ -106,7 +106,7 @@ public:
 
 > 将问题直接转化成求两个数组中第k小的元素
 
-如果该问题可以解决，那么第 (n+m)/2(n+m)/2 小数就是我们要求的中位数.
+如果该问题可以解决，那么第  `(n+m)/2` 小数就是我们要求的中位数.
 先从简单情况入手，假设 $m,n≥k/2$，我们先从 `nums1` 和 `nums2` 中各取前 $k/2$ 个元素：
 
 *  如果 $nums1[k/2−1]>nums2[k/2−1]$，则说明 `nums1` 中取的元素过多，`nums2` 中取的元素过少；因此 `nums2` 中的前 $k/2$ 个元素一定都小于等于第 $k$ 小数，所以我们可以先取出这些数，将问题归约成在剩下的数中找第 $k−⌊k/2⌋$ 小数。
@@ -143,7 +143,7 @@ public:
     }
 
     int findnum(vector<int>& nums1, int i, vector<int>& nums2, int j, int k) {
-        if (nums1.size() - i > nums2.size() -j) return findnum(nums2, j, nums1, i, k);
+        if (nums1.size() - i > nums2.size() - j) return findnum(nums2, j, nums1, i, k);
         if (nums1.size() == i) return nums2[j + k - 1];
         if (k == 1) return min(nums1[i], nums2[j]);
         int si = min(i + k / 2, int(nums1.size())), sj = j + k / 2;

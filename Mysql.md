@@ -1,3 +1,5 @@
+
+
 # 基础篇
 
 ## 通用语法及分类
@@ -1503,27 +1505,47 @@ GROUP BY table_schema;
 
 
 
+mysql服务的启动和停止
+
+```bash
+net stop mysql 　　 #启动 net start mysql    #停止
+```
+
+登录 mysql
+
+```bash
+mysql -h localhost -u root -P 3306 -p
+```
+
+- -h mysql连接地址
+- -u mysql登录用户名
+- -P mysql连接端口(默认为 3306)
+- -p mysql登录密码
+
+
+
 docker安装
 
 ```shell
 docker search mysql 			# 查看版本
 docker pull mysql				# 拉取镜像
 
+sudo docker run -d -p 3306:3306 -v /usr/local/mysql/conf:/etc/mysql/conf.d -v /usr/local/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 --name  mysql mysql:5.7
 
-docker run -p 3306:3306 --name mysqlxx \
--v /mydata/mysql/log:/var/log/mysql \		
--v /mydata/mysql/data:/var/lib/mysql \
--v /mydata/mysql/conf:/etc/mysql \
--e MYSQL_ROOT_PASSWORD=root \
--d mysql:latest
+
+docker run -d -p 22100:3306 --name mysql \
+-v /dataxx/mysql/log:/var/log/mysql \
+-v /dataxx/mysql/data:/var/lib/mysql \
+-v /dataxx/mysql/conf:/etc/mysql \
+-e MYSQL_ROOT_PASSWORD=ck mysql
 
 #	docker run:在docker中启动一个容器实例
 #	-d:该容器在后台运行
-#	p 3306:3306：容器与主机映射端口为，主机3306，容器3306
+#	p 22100:3306：容器与主机映射端口为，主机22100，容器3306
 #	--name mysql:容器运行后的名称
-#	将容器/var/log/mysql目录下的数据，备份到主机的 /mysqldata/mysql/log目录下
+#	将容器/var/log/mysql目录下的数据，备份到主机的 /mysqldata/mysql/log目录下		
 #	将容器/var/lib/mysql目录下的数据，备份到主机的 /mysqldata/mysql/data目录下
-#	将容器/etc/mysql目录下的数据，备份到主机的 mysqldata/mysql/conf目录下
+#	将容器/etc/mysql目录下的数据，备份到主机的 mysqldata/mysql/conf目录下	这个好像不太行
 #	设置当前mysql实例的密码为root
 #	需要运行的容器名称以及版本号
 
@@ -1533,4 +1555,701 @@ mysql -u root -p				# 登录mysql命令
 ```
 
 https://blog.csdn.net/qq_25482375/article/details/126250746
+
+
+
+# 语法
+
+## 基础查询
+
+### 基础查询
+
+#### 1. 查询所有列
+
+```mysql
+select * from user_profile
+```
+
+
+
+#### 2. 查询多列
+
+```mysql
+select device_id, gender, age, university 
+from user_profile
+```
+
+
+
+### 简单处理查询结果
+
+#### 3. 查询结果去重
+
+```mysql
+select distinct university 
+from user_profile;
+
+SELECT university 
+from user_profile 
+GROUP BY university;
+```
+
+
+
+#### 4. 查询结果限制返回行数
+
+```mysql
+select device_id 
+from user_profile 
+limit 2;	   # 从第0+1(m=0)条开始，取n条数据
+
+SELECT device_id 
+FROM user_profile 
+LIMIT 0,2;  # 从第m+1条开始，取n条数据
+```
+
+
+
+#### 5. 将查询后的列重新命名            
+
+```mysql
+select device_id as user_infos_example 
+from user_profile 
+limit 2;
+```
+
+
+
+## 条件查询
+
+### 基础排序
+
+`order by ... (desc)`：按照某列排序，默认升序，(desc)降序
+
+当 ... 为多列，会先排第一列，在排序第二列
+
+#### 36. 查找后排序
+
+```mysql
+select device_id, age
+from user_profile
+order by age
+```
+
+
+
+#### 37. 查找后多列排序
+
+```mysql
+SELECT device_id, gpa, age 
+FROM user_profile 
+ORDER BY gpa
+```
+
+
+
+#### 38. 查找后降序排序
+
+```mysql
+SELECT device_id, gpa, age
+FROM user_profile
+ORDER by gpa DESC, age DESC;
+```
+
+
+
+### 基础操作符
+
+#### 6.  查找指定某列值的信息            
+
+```mysql
+select device_id, university 
+from user_profile
+where university = '北京大学';
+```
+
+
+
+#### 7. 查询大于某个值的信息
+
+```mysql
+select device_id, gender, age, university 
+from user_profile
+where age > 24;
+```
+
+
+
+#### 8. 查询某个范围的信息
+
+```mysql
+SELECT device_id,gender,age
+FROM user_profile
+where age>=20 and age<=23;
+```
+
+
+
+#### 9. 查找除什么以外的信息
+
+```mysql
+select device_id,gender,age,university
+from user_profile
+where university != '复旦大学'
+#where university not like '复旦大学'	比较少使用
+# where university not in ('复旦大学')
+```
+
+
+
+#### 10. 用where过滤空值
+
+```mysql
+select device_id, gender, age, university from user_profile
+where age is not null;
+# Where 列名 != 'null'
+# Where 列名 <> 'null' 
+```
+
+
+
+### 高级操作符
+
+#### 11. where多条件筛选
+
+逻辑符号`and`
+
+```mysql
+select device_id,gender,age,university,gpa
+from user_profile
+where gender = "male" and gpa > 3.5
+```
+
+
+
+#### 12. or 多条件筛选
+
+逻辑符号 `or`
+
+```mysql
+select device_id,gender,age,university,gpa
+from user_profile
+where university = "北京大学" or gpa > 3.7
+```
+
+
+
+#### 13. Where in 和 Not in
+
+```mysql
+SELECT device_id,gender,age,university,gpa
+FROM user_profile
+WHERE university IN ("北京大学","复旦大学","山东大学")
+```
+
+
+
+#### 14.  操作符混合运用
+
+`and` 的优先级比 `or` 高
+
+```mysql
+SELECT device_id,gender,age,university,gpa FROM user_profile
+WHERE gpa>3.5 AND university='山东大学' OR gpa>3.8 AND university='复旦大学'
+```
+
+使用 `unoin` 可以把两个语句联合
+
+```mysql
+SELECT device_id, gender, age, university, gpa
+from user_profile
+where gpa > 3.8 and university = '复旦大学'
+UNION
+SELECT device_id, gender, age, university, gpa
+from user_profile
+where gpa > 3.5 and university = '山东大学'
+```
+
+
+
+#### 15.  查看名称中含...的用户
+
+  _：匹配任意一个字符；  
+
+  `SELECT * FROM 学生表 WHERE name LIKE '张__' 		//查询姓“张”且名字是3个字的学生姓名。` 
+
+  %：匹配0个或多个字符；  
+
+ `SELECT * FROM 学生表 WHERE 姓名 LIKE '张%'			//查询学生表中姓‘张’的学生的详细信息。` 
+
+  [ ]：匹配[ ]中的任意一个字符(若要比较的字符是连续的，则可以用连字符“-”表 达 )； 
+
+ `SELECT * FROM 学生表 WHERE 姓名 LIKE '[张李刘]%'	//查询学生表中姓‘张’、姓‘李’和姓‘刘’的学生的情况。` 
+
+ `[^ ]`：不匹配[ ]中的任意一个字符。
+
+ `SELECT * FROM 学生表 WHERE 学号 LIKE '%[^235]' 	//从学生表表中查询学号的最后一位不是2、3、5的学生信息。`
+
+```mysql
+select device_id,age,university
+from user_profile
+where university like "%北京%"
+```
+
+
+
+## 高级查询
+
+### 计算函数
+
+#### 16. 查找...最值
+
+`max` 找最值，`round` 保留1小数点，四舍五入
+
+```mysql
+select round(max(gpa), 1) as gpa
+from user_profile
+where university = '复旦大学'
+```
+
+
+
+#### 17.  计算平均值
+
+`avg` 可以计算筛选出列的平均值
+
+```mysql
+select count(gender) as male_num, round(avg(gpa), 1) as avg_gpa
+from user_profile
+WHERE gender = 'male'; 
+```
+
+
+
+### 分组查询
+
+#### 18. 分组计算
+
+对需要的组类分组
+`group by ...`：按照...分组
+
+```mysql
+select gender, university, 
+count(gender) as user_num, 
+avg(active_days_within_30) as avg_active_day, 
+avg(question_cnt) as avg_question_cnt
+from user_profile
+group by university, gender
+```
+
+
+
+#### 19. 分组过滤
+
+`having ...`： 按照...规则过滤
+
+聚合函数结果作为筛选条件时，不能用where，而是用having语法
+
+因为 where 的操作对象是一条记录，比如说当一条记录xxx时，在什么条件下可以用 where 
+
+但是涉及到多条记录时，where不适用。
+
+1. where 从记录中法过滤出某一条记录 
+2. having 可以从一组组记录中过滤掉其哪几组 
+
+- WHERE 关键字无法与合计函数(count，sum，avg，max/min)一起使用；
+- SQL语句执行顺序
+    FROM - ON - JOIN - **WHERE** - GROUP BY - WITH - **HAVING** - **SELECT** - DISTINCT - ORDER BY - LIMIT
+
+```mysql
+select university,
+avg(question_cnt) as avg_question_cnt,
+avg(answer_cnt) as avg_answer_cnt
+from user_profile
+group by university
+having avg_question_cnt < 5 OR avg_answer_cnt < 20
+```
+
+
+
+#### 20. 分组排序
+
+`order by ...` ：按照...排序
+
+涉及到聚合函数，首先考虑分组
+
+三类可以跟聚合函数： 
+
+- select
+- having
+- order by
+
+```mysql
+select university, 
+avg(question_cnt) as avg_question_cnt
+from user_profile
+group by university
+order by avg_question_cnt
+```
+
+
+
+## 多表查询
+
+### 子查询
+
+#### 21.  浙江大学用户题目回答情况            
+
+设计到两个表查询
+
+先从一个表按照条件筛选出来的id，在用这个id用为另一个表的where筛选条件
+
+```mysql
+select device_id,question_id,result
+from question_practice_detail
+where device_id=(
+    select device_id
+    from user_profile
+    where university = '浙江大学'
+)
+order by question_id;
+```
+
+也可以使用连表
+
+```mysql
+select q.device_id, q.question_id, q.result
+from question_practice_detail as q join user_profile as u on q.device_id=u.device_id
+where u.university = '浙江大学'
+order by q.question_id;
+```
+
+
+
+### 链接查询
+
+#### 22. 统计每个学校的答过题的用户的平均答题数
+
+```mysql
+select p.university,
+count(question_id)/count(distinct(q.device_id)) as avg_answer_cnt	#计算人均答题
+from user_profile as p join question_practice_detail AS q	# 连表
+on p.device_id = q.device_id 
+GROUP BY university;	#按学校分类
+```
+
+
+
+#### 23. 统计每个学校各难度的用户平均刷题数
+
+```mysql
+select university, difficult_level,
+count(t2.question_id) / count(distinct(t2.device_id)) as avg_answer_cnt 
+# 题目数/用户数 = 平均每个题目刷多少次		
+from 
+    user_profile as t1,
+    question_practice_detail as t2,
+    question_detail as t3
+where
+    t1.device_id = t2.device_id		 		   #组合条件
+    and
+    t2.question_id = t3.question_id
+GROUP BY t1.university,t3.difficult_level;		#先按照学校以及难度划分
+```
+
+使用连表
+
+```mysql
+select university, difficult_level,
+count(t2.question_id) / count(distinct(t2.device_id)) as avg_answer_cnt 
+from 
+    user_profile as t1 join question_practice_detail as t2 on t1.device_id = t2.device_id
+    join question_detail as t3 on t2.question_id = t3.question_id
+GROUP BY t1.university,t3.difficult_level;
+```
+
+
+
+### 组合查询
+
+#### 24. 统计每个用户的平均刷题数
+
+```mysql
+select a.university, c.difficult_level,
+count(b.question_id)/count(distinct b.device_id) as avg_answer_cnt
+from user_profile as a,question_practice_detail as b,question_detail as c
+where a.device_id=b.device_id and b.question_id=c.question_id and a.university="山东大学"
+group by c.difficult_level
+```
+
+
+
+#### 组合查询
+
+#### 25. 查找山东大学或者性别为男生的信息\
+
+要求不去重
+
+不去重表示：只要满足一个条件就被筛选出来，但总会存在一个人满足了两个条件只筛选一次。
+
+```mysql
+select device_id, gender, age, gpa 
+from user_profile 
+where university = "山东大学" 
+union all
+select device_id, gender, age, gpa 
+from user_profile 
+where gender = 'male'
+# 不能用OR，因为or自带去重，union等价于or，但union all可以不去重
+```
+
+
+
+## 必会的常用函数
+
+### 条件函数
+
+#### 26.  计算25岁以上和以下的用户数量            
+
+条件函数 `when` 和 `if`
+
+```mysql
+case 
+	when ...(条件) then ...(满足为) 
+	when ...(条件) then ...(满足为)
+	else (其他为) 
+end
+if(age>=25, ...(满足为), ...(不满足为)
+```
+
+```mysql
+select if (age >= 25, '25岁及以上', '25岁以下') as age_cnt,
+# select (case when age>=25 then '25岁及以上' else '25岁以下' end) as age_cut, 
+count(device_id) as number
+from user_profile
+group by age_cnt
+```
+
+
+
+#### 27. 查看不同年龄段的用户明细
+
+条件函数，多条条件用 `when`
+
+```mysql
+select device_id, gender, 
+case
+    when age<20 then '20岁以下'
+    when age<25 then '20-24岁'
+    when age>=25 then '25岁及以上'
+    else '其他'
+end as age_cut
+from user_profile;
+```
+
+
+
+### 日期函数
+
+**时间戳-日期格式转化** 
+
+1. `from_unixtime`：**将时间戳转换成日期**
+2. `unix_timestamp`：**日期转换回时间戳**
+
+**年月日截取** 
+
+1. `year('2021-08-01')`：返回年
+2. `month('2021-08-01')`
+3. `day('2021-08-01')`
+
+**日期差计算**
+
+1. `datedff('2021-08–09','2021-08-01')`：返回date1-date2
+2. `date_sub('2021-08–09',interval 8 day) `：返回开始日期startdate减少‘2021-08-01' 
+
+
+
+#### 28. 计算用户8月每天的练题数量 
+
+`day(date)`：能把 `abcd-ef-gh` 中的日摘出来，通常配合运算符使用
+
+`where like 2021-08% `：可以把符合前缀 `2021-08` 选择出来
+
+`where date regexp "2021-08"`：可以把符合前缀 `2021-08` 选择出来
+
+`where substring(date,1, 7) = '2021-08'` ：字符串1-7个符合的提取
+
+```mysql
+select 
+    day(date) as day,
+    count(question_id) as question_cnt
+from question_practice_detail
+where date like '2021-08%'
+group by day(date);
+```
+
+
+
+#### 29. 计算用户的平均次日留存率
+
+1. 用datediff区分第一天和第二天在线的device_id 
+
+2. 用left outer join做自表联结 
+
+3. 用distinct q2.device_id,q2.date做双重去重，找到符合条件的当天在线人数 
+
+```mysql
+SELECT COUNT(distinct q2.device_id,q2.date)/count(DISTINCT q1.device_id,q1.date) as avg_ret
+from question_practice_detail as q1 left outer join question_practice_detail as q2
+on q1.device_id=q2.device_id and DATEDIFF(q2.date,q1.date)=1
+```
+
+
+
+### 文本函数
+
+1. `substring_index(substr, sep, num)`：seq(分隔符)，num(第几个，正数从左往右，负数相反)，返回的是子串，如果不是1或-1，需要再截取
+
+2. `locate(substr, str)`：返回子串 substr 在字符串 str 中第一次出现的位置，如果字符substr在字符串str中不存在，则返回0； 
+
+3. `position(substr IN str)`：返回子串 substr 在字符串 str 中第一次出现的位置，如果字符substr在字符串str中不存在，与LOCATE函数作用相同； 
+
+4. `left(str, length)`：从左边开始截取str，length是截取的长度； 
+
+5. `right(str, length)`：从右边开始截取str，length是截取的长度； 
+6. `substring(str ,n ,m)`：返回字符串str从第n个字符截取到第m个字符； 
+7. `replace(str, n, m)`：将字符串str中的n字符替换成m字符； 
+8. `length(str)`：计算字符串str的长度。 
+
+#### 30. 统计每种性别的人数
+
+```mysql
+select substring_index(profile,',', -1) as gender, count(device_id)
+from user_submit
+group by gender
+```
+
+
+
+#### 31. 提取博客URL中的用户名
+
+```mysql
+select device_id, replace(blog_url, "http:/url/", "") as user_name
+from user_submit
+```
+
+
+
+#### 32. 截取出年龄
+
+```mysql
+select substring_index(substring_index(profile, ',', -2), ',', 1) as age,
+count(device_id) as number
+FROM user_submit
+GROUP BY age;
+```
+
+
+
+### 窗口函数
+
+窗口函数的含义为先分组再排序
+
+`row_number() over (partition by col1 order by col2)`：表示根据 col1 分组，在分组内部根据 col2 排序。 
+
+#### 33. 找出每个学校GPA最低的同学
+
+```mysql
+select device_id, university, gpa from (
+    select device_id, university, gpa,
+    row_number() over(partition by university order by gpa) as rk
+    from user_profile
+) as temp
+where rk = 1
+```
+
+利用相关子查询，把每个学校的最低gpa当作查询条件，去找出每个学校的gpa最低的同学。因为每个学校只有一个gpa最低的同学，所以最后出来的结果不需要再用group by，用order by排序就好。
+
+```mysql
+SELECT device_id, university, gpa FROM user_profile as u
+WHERE gpa = (
+    SELECT MIN(gpa)
+    FROM user_profile
+    WHERE university = u.university)
+ORDER BY university
+```
+
+
+
+### 综合练习
+
+#### 34. 统计复旦用户8月练题情况            
+
+`join` 等价于inner join内连接，是返回两个表中都有的符合条件的行。
+
+`left join`左连接，是返回左表中所有的行及右表中符合条件的行。
+
+`right join` 右连接，是返回右表中所有的行及左表中符合条件的行。
+
+`full join` 全连接，是返回左表中所有的行及右表中所有的行，并按条件连接。
+
+通常情况下，`left join` 肯定比 `inner join` 返回的行数多。
+
+
+
+  1、用左连接把user和question连接起来，那么我们得到的结果首先就是所有的user的基本信息，如果答题了就会有答题的相关数据，如果没答题那么答题的相关数据为null。 
+
+  2、COUNT(q.question_id)聚合函数是不计空值的，所以遇到空值默认为0了； 利用SUM() 和case when... then去计算答对的题数。 
+
+```mysql
+select 
+    u.device_id,
+    u.university, 
+    #SUM(IF(result IS NOT NULL, 1, 0)) AS questino_cnt,
+    count(q.question_id) as question_cnt,
+    # sum(case when result = 'right' THEN 1
+    #     else 0 end) as right_question_cnt
+    sum(if(result = "right", 1, 0)) as right_question_cnt
+from 
+    user_profile u
+    left join question_practice_detail q ON u.device_id = q.device_id
+    and month(q.date) = "08"
+where 
+    university = "复旦大学"
+GROUP BY
+    u.device_id;
+```
+
+
+
+#### 35. 浙大不同难度题目的正确率            
+
+```mysql
+select 
+    difficult_level,
+    avg(if(result = "right", 1, 0)) as correct_rate
+from 
+    user_profile as u, 
+    question_practice_detail as qpd,
+    question_detail as qd
+where
+    u.device_id = qpd.device_id
+and
+    qpd.question_id = qd.question_id
+and university = "浙江大学"
+group by difficult_level 
+order by correct_rate;
+```
+
+
+
+#### 39. 21年8月份练题总数            
+
+```mysql
+select 
+    count(distinct device_id) as did_cnt, 
+    count(question_id) as question_cnt
+from question_practice_detail
+where date >= '2021-08-01' and date <= '2021-08-31'; 
+```
 
