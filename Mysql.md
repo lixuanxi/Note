@@ -1643,7 +1643,7 @@ order by age
 ```mysql
 SELECT device_id, gpa, age 
 FROM user_profile 
-ORDER BY gpa
+ORDER BY gpa, age
 ```
 
 
