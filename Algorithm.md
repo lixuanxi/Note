@@ -113,10 +113,10 @@ void quick_sort(int q[], int l, int r) {
     //第一步：分成子问题  以j为划分时，x不能选q[r] (若以i为划分,则x不能选q[l])
     
     int s = rand() % (r - l + 1) + l;       //随机生成left到right的整数
-    swap(q[l],q[s]);                  //随机更换key值避免最差情况
     
     //以j为划分，x不能去取右边界；以i为划分，x不能取左边界
     int x = q[l + r >> 1];
+    // int x = q[s];
     int i = l - 1, j = r + 1;//取分界点x i,j为两个指针
     //int i = l - 1, j = r + 1, x = q[l + r + 1 >> 1];//用i做模板
     
