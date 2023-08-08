@@ -115,8 +115,8 @@ void quick_sort(int q[], int l, int r) {
     int s = rand() % (r - l + 1) + l;       //随机生成left到right的整数
     
     //以j为划分，x不能去取右边界；以i为划分，x不能取左边界
-    int x = q[l + r >> 1];
-    // int x = q[s];
+    // int x = q[l + r >> 1];
+    int x = q[s];
     int i = l - 1, j = r + 1;//取分界点x i,j为两个指针
     //int i = l - 1, j = r + 1, x = q[l + r + 1 >> 1];//用i做模板
     
